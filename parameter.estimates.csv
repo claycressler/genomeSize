@@ -1,0 +1,11 @@
+,theta.genomesize.Ppleth,sigma.sq.matrix,alpha.matrix,theta.genomesize.D,theta.genomesize.M,theta.genomesize.P,theta.genomesize.pleth,theta.genomesize.Mpleth,treename,tree,model
+1,NA,0.132,NA,NA,NA,NA,NA,NA,av_ultra_fulldataset.nex,tree1,bm
+2,NA,0.129,0.072,NA,3.529,NA,NA,NA,av_ultra_fulldataset.nex,tree1,metamorphosis
+3,NA,0.126,0.083,7.057,3.503,11.982,NA,NA,av_ultra_fulldataset.nex,tree1,mpd
+4,NA,0.121,0.094,3.407,3.622,8.997,NA,-2.968,av_ultra_fulldataset.nex,tree1,mpdMpleth
+5,NA,0.126,0.079,NA,3.626,NA,NA,-2.391,av_ultra_fulldataset.nex,tree1,MxMpleth
+6,NA,0.127,0.072,NA,NA,NA,NA,-5.966,av_ultra_fulldataset.nex,tree1,xMpleth
+7,NA,0.132,0.058,NA,NA,NA,-4.082,NA,av_ultra_fulldataset.nex,tree1,xpleth
+8,NA,0.125,0.070,NA,NA,NA,-0.523,-9.235,av_ultra_fulldataset.nex,tree1,xplethMpleth
+9,-3.393,0.125,0.071,NA,NA,NA,-0.444,-9.307,av_ultra_fulldataset.nex,tree1,xplethMplethPpleth
+10,NA,0.138,0.058,NA,NA,NA,NA,NA,av_ultra_fulldataset.nex,tree1,OU1

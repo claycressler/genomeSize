@@ -1,0 +1,25 @@
+,tree,model,sigma.squared,alpha,optima.genomesize.D,optima.genomesize.M,optima.genomesize.P,optima.genomesize.Mpleth,optima.genomesize.Ppleth,optima.genomesize.pleth,treename,parameter
+1,tree1,mpdMpleth,0.1021273247,0.1493714917,1.4747157888,2.1064499786,2.9565927305,-1.2999495602,NA,NA,NA,2.5%
+2,tree1,mpdMpleth,0.1211035836,0.0940791478,3.4074932146,3.6217866878,8.9968222158,-2.9679311142,NA,NA,av_ultra_fulldataset.nex,NA
+3,tree1,mpdMpleth,0.2487496683,1.8736982152,5.444911434,5.1012398088,7.798173774,4.2063535588,NA,NA,NA,97.5%
+,,,,,,,,,,,,
+,,,,,,,,,,,,
+,,,,,,,,,,,,
+,,sigma.squared,0.10,0.12,0.25,,,,,,,
+,,alpha,0.15,0.09,1.87,,,,,,,
+,,optima.genomesize.D,1.47,3.41,5.44,4.37,30.19,231.58,,,,
+,,optima.genomesize.M,2.11,3.62,5.10,8.22,37.40,164.23,,,,
+,,optima.genomesize.P,2.96,9.00,7.80,19.23,8077.37,2436.15,,,,
+,,optima.genomesize.Mpleth,-1.30,-2.97,4.21,0.27,0.05,67.11,,,,
+,,optima.genomesize.Ppleth,NA,NA,NA,,,,,,,
+,,optima.genomesize.pleth,NA,NA,NA,,,,,,,
+,,,,,,,,,,,,
+,,parameter,2.5%,NA,97.5%,,,,,,,
+,,,,,,,,,,,,
+,,,Parameter Estimate,,97.5%,,,,,,,
+,,sigma.squared,0.12,0.10,0.25,,,,,,,
+,,alpha,0.09,0.15,1.87,,,,,,,
+,,optima.genomesize.D,30.19,4.37,231.58,,,,,,,
+,,optima.genomesize.M,37.40,8.22,164.23,,,,,,,
+,,optima.genomesize.P,8077.37,19.23,2436.15,,,,,,,
+,,optima.genomesize.Mpleth,0.05,0.27,67.11,,,,,,,
