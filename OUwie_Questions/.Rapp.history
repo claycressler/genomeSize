@@ -1,0 +1,174 @@
+source("OUwievsOUCH.R")
+tt
+tipdat
+source("OUwievsOUCH.R")
+dat <- read.csv("tree1.dat.csv")#
+tree <- read.nexus("av_ultra_fulldataset.nex")#
+tree <- ape2ouch(tree)#
+rownames(dat) <- dat$nodes#
+regimes <- dat[c("xMpleth", "metamorphosis",   "OU1")]#
+gsz <- log(dat['genomesize'])#
+#
+# Plot the xMpleth hypothesis#
+plot(tree, regimes=regimes['xMpleth'], cex=.5)#
+#
+# fit models. Results in res.bm, res.ou#
+res.bm <- brown(gsz,  tree)#
+res.ou <- apply(regimes, 2, function(x) hansen(gsz, tree, factor(x), sqrt.alpha=1, sigma=1))
+res.ou[["xMpleth"]]
+version(ouch)
+??ouch
+require(OUwie)#
+#
+#############
+# Trees  - one for each hypothesis, with the internal nodes labelled appropriately (below)#
+#############
+tree <- read.nexus("av_ultra_fulldataset.nex")#
+tree_xMpleth <- tree_xplethMpleth <- tree_xpleth <- tree_metamorphosis <- tree#
+#
+#############################################
+# Regimes at Nodes for each hypothesis#
+#############################################
+nodedata <- read.csv("ouwie_nodelabels.csv")  # each hypothesis is nodedata$xpleth, nodedata$xMpleth, etc.#
+#
+## Node Colors for plots#
+nodecol <- nodedata#
+nodecol[-1] <- sapply(nodecol[-1], as.character) #
+nodecol[nodecol=="x"] <- "black"#
+nodecol[nodecol=="Mpleth"] <- "red"#
+nodecol[nodecol=="pleth"] <- "yellow"#
+nodecol[nodecol=="M"] <- "green"#
+#
+## code Regime names as numbers for the OUwie algorithm#
+nn <- nodedata#
+nn[-1] <- sapply(nn[-1], as.character) #
+nn[nn=="x"] <- 1#
+nn[nn=="Mpleth"] <- 2#
+nn[nn=="pleth"] <- 3#
+nn[nn=="M"] <- 4#
+#
+tree_xMpleth$node.label <- nn$xMpleth#
+tree_metamorphosis$node.label <- nn$metamorphosis#
+#
+#############################################################
+# Tip Data (species labels, genome size and regimes at tips)#
+#############################################################
+dat <- read.csv("tree1.dat.csv")#
+dat$genomesize <- log(dat$genomesize)#
+#
+tdat <- dat[!is.na(dat$genomesize),]  # tip data#
+ndat <- dat[is.na(dat$genomesize),]   # node data#
+#
+oo <- sapply(tree$tip.label, function(x) grep(x, tdat$labels))    ## reorder tdat to match order of tip labels in phylo tree#
+#
+tipdat <- tdat[oo,]#
+tipdat <- tipdat[c("labels", "xMpleth", "metamorphosis", "genomesize")]#
+#
+## Tip Colors for plots#
+tipcol <- tipdat#
+tipcol[2:3] <- sapply(tipcol[2:4], as.character)#
+tipcol[tipcol=="x"] <- "black"#
+tipcol[tipcol=="Mpleth"] <- "red"#
+tipcol[tipcol=="M"] <- "green"#
+#
+## code Regime names as numbers for the OUwie algorithm#
+tt <- tipdat#
+tt[2:3] <- sapply(tt[2:3], as.character) #
+tt[tt=="x"] <- 1#
+tt[tt=="Mpleth"] <- 2#
+tt[tt=="M"] <- 4#
+#
+### input dataframes - one for each hypothesis#
+data.xMpleth <- tt[c("labels", "xMpleth", "genomesize")]#
+data.metamorphosis <- tt[c("labels", "metamorphosis", "genomesize")]#
+#
+################################################################
+###  xMpleth#
+################################################################
+plot(tree_xMpleth, cex=.6)     # plot tree with slightly reduced font size#
+nodelabels(pch=21, bg=nodecol$xMpleth)   # plot node labels#
+tiplabels(pch=21, bg=tipcol$xMpleth)   # plot tip labels#
+title("xMpleth")
+xMpleth.OUMVA <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUMVA"),root.station=FALSE)
+xMpleth.OUM <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUM"),root.station= FALSE)
+xMpleth.OUM
+xMpleth.OUMVA
+plot(tree, regimes=regimes['xMpleth'], cex=.5)
+?hansentree
+require(ape)#
+require(ouch)#
+#
+# setup#
+dat <- read.csv("tree1.dat.csv")#
+tree <- read.nexus("av_ultra_fulldataset.nex")#
+tree <- ape2ouch(tree)#
+rownames(dat) <- dat$nodes#
+regimes <- dat[c("xMpleth", "metamorphosis",   "OU1")]#
+gsz <- log(dat['genomesize'])#
+#
+# Plot the xMpleth hypothesis#
+plot(tree, regimes=regimes['xMpleth'], cex=.5)#
+#
+# fit models. Results in res.bm, res.ou#
+res.bm <- brown(gsz,  tree)#
+res.ou <- apply(regimes, 2, function(x) hansen(gsz, tree, factor(x), sqrt.alpha=1, sigma=1))#
+res.ou[['xMpleth']]
+xMpleth.OUM <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUM"),root.station= FALSE)
+xMpleth.OUM
+xMpleth.OUM <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUM"),root.station= TRUE)
+xMpleth.OUM
+res.ou[["OU1"]]
+?hansen
+data(bimac)#
+tree <- with(bimac,ouchtree(node,ancestor,time/max(time),species))#
+plot(tree,node.names=TRUE)#
+print(h1 <- brown(log(bimac['size']),tree))#
+plot(h1)#
+print(h2 <- hansen(log(bimac['size']),tree,bimac['OU.1'],sqrt.alpha=1,sigma=1))#
+plot(h2)#
+print(h3 <- hansen(log(bimac['size']),tree,bimac['OU.3'],sqrt.alpha=1,sigma=1))#
+plot(h3)#
+print(h4 <- hansen(log(bimac['size']),tree,bimac['OU.4'],sqrt.alpha=1,sigma=1))#
+plot(h4)#
+h5 <- hansen(log(bimac['size']),tree,bimac['OU.LP'],sqrt.alpha=1,sigma=1,reltol=1e-5)#
+print(h5 <- update(h5,method='subplex',reltol=1e-11,parscale=c(0.1,0.1),hessian=TRUE))#
+simdat <- simulate(h5,nsim=10)#
+hsim <- update(h5,data=simdat[[1]])#
+print(summary(hsim))#
+bsim <- update(h1,data=simdat[[1]])#
+print(summary(bsim))
+res.ou[['OU1']]
+?OUwie
+xMpleth.OUMVA <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUMVA"),root.station=FALSE)
+res.ou[['OU1']]
+ouchres <- res.ou[["OU1"]] ## ouch-fitted model from Marguerite's code#
+## evaluate the likelihood at the OUwie OU1 parameters using ouch:#
+ouchres <- update(#
+                 ouchres,#
+                 sqrt.alpha=sqrt(ouwieres$solution[1,1]),#
+                 sigma=sqrt(ouwieres$solution[2,1]),#
+                 fit=FALSE#
+                 )
+ouwieres <- OUwie(tree_xMpleth,data.xMpleth,model=c("OU1"),root.station=TRUE)
+ouchres <- res.ou[["OU1"]] ## ouch-fitted model from Marguerite's code#
+## evaluate the likelihood at the OUwie OU1 parameters using ouch:#
+ouchres <- update(#
+                 ouchres,#
+                 sqrt.alpha=sqrt(ouwieres$solution[1,1]),#
+                 sigma=sqrt(ouwieres$solution[2,1]),#
+                 fit=FALSE#
+                 )
+ouchres
+summary(ou.res[['OU1']])
+summary(res.ou[['OU1']])
+res.ou[[]]
+res.ou[['OU1']]
+ouchres
+ouchres <- res.ou[["OU1"]] ## ouch-fitted model from Marguerite's code#
+## evaluate the likelihood at the OUwie OU1 parameters using ouch:#
+ouchres <- update(#
+                 ouchres,#
+                 sqrt.alpha=sqrt(0),#
+                 sigma=sqrt(ouwieres$solution[2,1]),#
+                 fit=FALSE#
+                 )

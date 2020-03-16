@@ -1,0 +1,13 @@
+a01b4969df2eb16a38d42bd71fd60777 *DESCRIPTION
+d96df16c0181dcbbc381251ffa8fb59e *NAMESPACE
+528079619917682408ac34668942c6d9 *R/OUwie.R
+658ff817d2a076f0574a9edbce57dd2e *R/OUwie.fixed.R
+3d28fd41fbf39b002f8b395b9bbe7b0e *R/OUwie.sim.R
+9d4568613c0a21b4c0b483ccc9446b7b *R/varcov.ou.R
+f849f666e8ae9bff382c54bbd7a5f796 *R/weight.mat.R
+2fcec431286f8b3792c1f4dde14c14cd *data/sim.ex.rda
+2fcec431286f8b3792c1f4dde14c14cd *data/tworegime.rda
+3bcdcd3a6955963217304aaa2c21cb15 *man/Example.Rd
+eeb048df9677ea65049eff8124b15a32 *man/OUwie.Rd
+2f29fba313dcc132bbdb104ec2a8d596 *man/OUwie.fixed.Rd
+b099d419ddaef6e8c16fe2e1e5790dab *man/OUwie.sim.Rd
