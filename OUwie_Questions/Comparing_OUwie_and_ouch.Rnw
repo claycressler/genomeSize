@@ -241,36 +241,13 @@ set.phenotypic.values <- function(curr.node, anc.node, anc.pheno, tree, regimes,
 
 run <- FALSE;
 if (run) {
-    ## The code for finding the RNG seeds to use to create the trees
-    seeds <- rep(NA,length=length(seq(10,100)))
-    while(sum(is.na(seeds))!=0) {
-        print(sum(is.na(seeds)))
-        seed <- floor(runif(1, 1, 1e7))
-        set.seed(seed)
-        tree <- gen.tree(waittime=0.3, endtime=1)
-        labels <- rep('', nrow(tree))
-        labels[which(tree$time==1)] <- paste0('Sp',1:sum(tree$time==1))
-        tree$labels <- labels
-        ou.tree <- ouchtree(nodes=tree$node, ancestors=tree$ancestor, times=tree$time, labels=tree$labels)
-        ## If the tree has a number of tips that is not currently included in the set of RNG seeds...
-        if (ou.tree@nterm%in%seq(10,100))
-            if (is.na(seeds[which(seq(10,100)%in%ou.tree@nterm)])) {
-                ## ...paint regimes on the tree and...
-                ou.reg <- paint(ou.tree, subtree=c('1'='1','2'='2'), branch=c('1'='1','2'='2'))
-                ## ...if the number of tips in the smallest regime is at least 1/3 the size of the tree...
-                if (min(sapply(c('1','2'), function(x) sum(ou.reg[ou.tree@term]==x))) >= ou.tree@nterm/3)
-                    ## ...record the seed
-                    seeds[which(seq(10,100)%in%ou.tree@nterm)] <- seed
-            }
-    }
-
-    ## The actual seeds used to generate the trees
+    
+    ## RNG seeds used to generate the trees
     seeds <- c(35250,48305,512,9741,10942,82785,3690754,52887,2694830,31665,42307,64469,35257,68441,92488,91977,35279,63427,46032,64842,20056,13808,68427,79904,36216,762795,79173,59583,47372,7590702,90416,73212,33918,99829,35133,83037,34561,1252,77451,21182,68657,80080,58622,23352,92605,61669,94680,70448,62496,86767,50532,32082,6873,52895,52446,59809,50041,69135,87196,16166,35368,6690,57828,532,12679,55138,50109,45607,97207,11457,17776,421650,46569,67892,3646,80656,3812264,78324,88179,2143,3091624,4407,30378,2489714,5983027,57710,13597,10252,91772,70484,4685585)
 
-    ## Seeds for generating phenotypic datasets
+    ## RNG seeds for generating phenotypic datasets
     pseeds <- c(429561,582711,910097,733148,536289,732902,397913,193437,466449,731455,229950,492461,462732,95019,379477,553164,806700,771928,524934,268107)
 
-    require(pmc) ## for converting trees of class 'ouchtree' to trees of class 'phylo'
     results <- array(NA, dim=c(length(seeds)*length(pseeds),13))
     row <- 1
     for (i in 1:length(seeds)) {
@@ -283,7 +260,8 @@ if (run) {
         tree$labels <- labels
         ou.tree <- ouchtree(nodes=tree$node, ancestors=tree$ancestor, times=tree$time, labels=tree$labels)
         ou.reg <- paint(ou.tree, subtree=c('1'='1','2'='2'), branch=c('1'='1', '2'='2'))
-
+        
+        source("convert.R") ## for converting ouchtree to apetree
         ape.tree <- convert(ot=ou.tree)
         ## Label the internal nodes with their regime
         ## figure out which clade is in regime 2

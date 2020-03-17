@@ -1,13 +1,17 @@
-## The purpose of this code is to compare OUwie and OUCH fits.
-## In particular, I will show that the calculation of likelihoods is not the same between the two methods, even when the two methods should agree with one another.
+## The purpose of this code is to compare how OUwie and OUCH and calculate the covariance and weight matrices.
+
+require(OUwie)
+require(phytools)
+require(corpcor)
+require(ouch)
+require(ape)
+require(magrittr)
 
 ##############################
 #
 #	OUwie analysis
 #
 ##############################
-
-require(OUwie)
 
 ############
 # Trees  - one for each hypothesis, with the internal nodes labelled appropriately (below)
@@ -82,9 +86,6 @@ xMpleth.OUM <- OUwie(tree_xMpleth,data.xMpleth,model=c("OUM"),root.station=TRUE,
 #	OUCH analysis
 #
 ##############################
-require(ape)
-require(ouch)
-
 # setup
 dat <- read.csv("tree1.dat.csv")
 tree <- read.nexus("av_ultra_fulldataset.nex")
@@ -92,7 +93,7 @@ tree <- ape2ouch(tree)
 rownames(dat) <- dat$nodes
 regimes <- dat["xMpleth"]
 regimes <- factor(regimes[,1])
-names(regimes) <- rownames(regimes)
+names(regimes) <- rownames(dat["xMpleth"])
 gsz <- log(dat['genomesize'])
 
 # Plot the xMpleth hypothesis
@@ -138,8 +139,6 @@ xMpleth.OUM
 #	COMPUTING THE WEIGHT AND COVARIANCE MATRICES FOR OUCH           #
 #                                                                       #
 #########################################################################
-require(ape)
-require(ouch)
 data <- gsz
 tree <- tree
 regimes <- regimes
@@ -162,6 +161,7 @@ regimes <- list(regimes)
 names(regimes) <- nm
 regimes <- rep(regimes,nchar)
 regimes <- lapply(regimes,function(x)x[tree@nodes])
+ouch.regimes <- regimes ## store this because it is critical for calculating the weight and covariance matrices
 beta <- regime.spec(tree,regimes)
 
 ## From inside hansen.R ou.lik.fn() function
@@ -170,10 +170,10 @@ sigma <- sym.par(sigma)
 n <- length(dat)
 ev <- eigen(alpha,symmetric=TRUE)
 system("R CMD SHLIB weight-matrix.c")
-dyn.load("ouch/src/weight-matrix.so")
+dyn.load("weight-matrix.so")
 w <- .Call("ouch_weights",object=tree,lambda=ev$values,S=ev$vectors,beta=beta)
 system("R CMD SHLIB covar-matrix.c")
-dyn.load("ouch/src/covar-matrix.so")
+dyn.load("covar-matrix.so")
 v <- .Call("ouch_covar",object=tree,lambda=ev$values,S=ev$vectors,sigma.sq=sigma)
 ## This executes eqn (A8) in Butler and King 2004
 source("glssoln.R")
@@ -205,7 +205,6 @@ phy$node.label=as.numeric(int.states)
 tip.states<-factor(data[,1])
 data[,1]<-as.numeric(tip.states)
 
-library(phytools) ## for the nodeHeights function
 root.state <- phy$node.label[1]
 int.state <- phy$node.label[-1]
 ##New tree matrix to be used for subsetting regimes
@@ -240,7 +239,6 @@ V<-varcov.ou(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scaleHeight=
 W<-weight.mat(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scaleHeight=TRUE, assume.station=TRUE)
 ## here is the calculation of the thetas
 diag(V) <- diag(V)+p[length(p)] ## error is estimated
-library(corpcor)
 theta<-pseudoinverse(t(W)%*%pseudoinverse(V)%*%W)%*%t(W)%*%pseudoinverse(V)%*%x
 
 ## These are really different from one another
@@ -250,6 +248,10 @@ V
 ## As are these
 w
 W
+
+## Ah, but the orders of taxa are not quite the same between the two, which might help explain the differences. For example, column 1 in w represents the root regime, whereas that is colum 2 in W. Can I figure out the order differences?
+head(w)
+tail(W)
 
 ## Try the ouch method of finding theta using the OUwie weight and covariance matrices
 gsol <- try(

@@ -1,0 +1,88 @@
+_N_e_w_s _f_o_r _P_a_c_k_a_g_e '_o_u_c_h'
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1_4:
+
+        • Depends on R>=3.6.  This change necessitated by modifications
+          to the default RNG with R version 3.6.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1_3:
+
+        • Changes to the organization of the package.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1_2:
+
+        • Upgrade the package license to GPL version 3.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1_1:
+
+        • Improvements to the underlying C code, which now registers
+          callable functions.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1_0:
+
+        • In ‘glssoln’, when the Choleski decomposition fails, a
+          warning is issued and ‘NA’s are returned.  In previous
+          versions, an error was thrown.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._8:
+
+        • 'as(tree,"data.frame")' now returns a data-frame with
+          rownames identical to the node-names (tree@nodes).
+
+        • Functions that have been deprecated since 2.1-1 have been
+          removed.  The argument 'alpha' that was deprecated in favor
+          of 'sqrt.alpha' in version 2.6-1 has been removed.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._7:
+
+        • Fixed typo in the documentation of 'hansen'.  Thanks to
+          Roland Sookias for bringing this to my attention.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._6:
+
+        • In the 'hansen' function, the use of the argument 'alpha' was
+          confusing.  This vector parameterizes the "selection" portion
+          of the OU model, which since version 2 has been assumed to be
+          a positive-definite matrix (corresponding to stabilizing
+          selection).  In particular, it contains the entries of the
+          lower-triangular matrix square root of this positive definite
+          matrix.  To make the name more mnemonic, this argument has
+          been renamed 'sqrt.alpha'.  This is a superficial change
+          meant to improve intelligibility: the algorithm itself has
+          not changed.  To prevent loss of backward compatibility, use
+          of argument 'alpha' will continue to work, though it will
+          generate a warning.  In some future release, use of 'alpha'
+          as an argument to 'hansen' will no longer generate a warning
+          but will instead be passed through to the control list for
+          'optim' if method='optim' and will otherwise generate an
+          error.
+
+_C_h_a_n_g_e_s _i_n _o_u_c_h _v_e_r_s_i_o_n _2._1:
+
+        • Version 2 of ouch represents a major revision.  ouch's
+          capabilities have been substantially extended.
+
+        • support is now provided for multivariate characters.
+          Inference based on multivariate Ornstein-Uhlenbeck and
+          multivariate Brownian motion models is now provided.
+
+        • nonultrametric trees are supported.
+
+        • the root character state need no longer be estimated.
+          Instead, the root state is assumed to be distributed
+          according to the stationary distribution of the OU process.
+
+        • convenience functions for parametric bootstrap confidence
+          intervals are provided.
+
+        • the new function 'paint' simplifies the specification of
+          adaptive regimes in complex phylogenies.
+
+        • the new function 'ape2ouch' translates trees in the 'phylo'
+          format of the ape package into 'ouchtree' format (thanks to
+          Dan Ackerly).
+
+        • The new package is a complete rewrite, using S4 classes.  The
+          old functionality from ouch v. 1 remains available, but is
+          now deprecated.
+

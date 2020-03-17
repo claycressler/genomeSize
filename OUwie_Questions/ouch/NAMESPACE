@@ -1,0 +1,20 @@
+useDynLib(ouch,.registration=TRUE)
+import(methods)
+importFrom(subplex,subplex)
+importFrom(stats,deviance,simulate,update,coef,logLik,optim,rnorm,runif)
+importFrom(utils,head,tail)
+importFrom(graphics,plot,par,text)
+importFrom(grDevices,rainbow)
+exportClasses('ouchtree','browntree','hansentree')
+exportMethods(
+              'plot','logLik','summary','coef','coerce',
+              'print','show',
+              'simulate','update','bootstrap'
+              )
+export(
+       ouchtree,
+       brown,
+       hansen,
+       ape2ouch,
+       paint
+       )
