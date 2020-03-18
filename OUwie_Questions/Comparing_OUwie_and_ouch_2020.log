@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  18 MAR 2020 15:30
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  18 MAR 2020 17:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -448,395 +448,65 @@ Package pdftex.def Info: figure/unnamed-chunk-3-1.pdf used on input line 132.
 (pdftex.def)             Requested size: 361.34912pt x 289.07928pt.
  [1{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2 <
 ./figure/unnamed-chunk-1-1.pdf>] [3 <./figure/unnamed-chunk-2-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 141.
-LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <12> not available
-(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 143.
-LaTeX Font Info:    Try loading font information for TS1+pcr on input line 146.
+Package color Info: Redefining color shadecolor on input line 145.
 
-
-(/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/ts1pcr.fd
-File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
-)
-LaTeX Font Info:    Font shape `TS1/pcr/m/it' in size <12> not available
-(Font)              Font shape `TS1/pcr/m/sl' tried instead on input line 146.
-LaTeX Font Info:    Try loading font information for OMS+pcr on input line 170.
-
-
-(/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/omspcr.fd
-File: omspcr.fd 
-)
-LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 170.
-
-Overfull \hbox (59.51228pt too wide) in paragraph at lines 173--173
-[]                       []\OT1/pcr/m/n/12 dimnames[][]=[][]\OT1/pcr/b/n/12 lis
-t[][]\OT1/pcr/m/n/12 ([][]\OT1/pcr/b/n/12 NULL[][]\OT1/pcr/m/n/12 ,[][]\OT1/pcr
-/b/n/12 c[][]\OT1/pcr/m/n/12 ([][]"node"[][],[][]"ancestor"[][],[][]"time"[][])
-))[][] 
+Overfull \hbox (6.23232pt too wide) in paragraph at lines 148--148
+[]\OT1/pcr/m/sl/12 ## `geom[]smooth()` using method = 'gam' and formula 'y ~ s(
+x, bs
  []
 
+<figure/unnamed-chunk-4-1.pdf, id=40, 361.35pt x 433.62pt>
+File: figure/unnamed-chunk-4-1.pdf Graphic file (type pdf)
 
-Overfull \hbox (340.31216pt too wide) in paragraph at lines 186--186
-[]                               []\OT1/pcr/m/n/12 waittime[][]=waittime,[][]en
-dtime[][]=endtime,[][]extrate[][]=extrate,[][]anc.node[][]=curr.node,[][]tree[]
-[]=tree)[][] 
+<use figure/unnamed-chunk-4-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-4-1.pdf used on input line 149.
+(pdftex.def)             Requested size: 361.34912pt x 433.61894pt.
+Package color Info: Redefining color shadecolor on input line 156.
+
+Overfull \hbox (6.23232pt too wide) in paragraph at lines 159--159
+[]\OT1/pcr/m/sl/12 ## `geom[]smooth()` using method = 'gam' and formula 'y ~ s(
+x, bs
  []
 
-
-Overfull \hbox (102.71227pt too wide) in paragraph at lines 188--188
-[]                []\OT1/pcr/m/n/12 tree[] []<-[] []\OT1/pcr/b/n/12 rbind[][]\O
-T1/pcr/m/n/12 (tree,[][]\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 ([][]\OT1/pcr/b/n/
-12 nrow[][]\OT1/pcr/m/n/12 (tree)[][]+[][]1[][],curr.node,extinct.time[k]))[][]
- 
- []
-
-
-Overfull \hbox (1.91231pt too wide) in paragraph at lines 198--198
-[][]\OT1/pcr/m/sl/12 ## process, given an ouchtree object specified by tree, re
-gimes[][] 
- []
-
-
-Overfull \hbox (30.7123pt too wide) in paragraph at lines 199--199
-[][]\OT1/pcr/m/sl/12 ## specified by regimes, and OU parameters theta, alpha, a
-nd sigma.[][] 
- []
-
-
-Overfull \hbox (30.7123pt too wide) in paragraph at lines 200--200
-[][]\OT1/pcr/m/sl/12 ## This is done by recursion, which gen.phenotypic.values 
-acting as[][] 
- []
-
-
-Overfull \hbox (180.71225pt too wide) in paragraph at lines 203--203
-[][]\OT1/pcr/m/n/12 gen.phenotypic.values[] []<-[] []\OT1/pcr/b/n/12 function[]
-[]\OT1/pcr/m/n/12 ([][]tree[][],[] []regimes[][],[] []theta[][],[] []alpha[][],
-[] []sigma[][],[] []remove.anc[][]=[][]TRUE[][]) \OMS/cmsy/m/n/12 f[][] 
- []
-
-
-Overfull \hbox (390.71214pt too wide) in paragraph at lines 207--207
-[]    []\OT1/pcr/b/n/12 stop[][]\OT1/pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/
-m/n/12 Length of regime specification != number of nodes in tree; each node in 
-tree must be assigned to a regime\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 )[][] 
- []
-
-
-Overfull \hbox (181.91223pt too wide) in paragraph at lines 209--209
-[]    []\OT1/pcr/b/n/12 stop[][]\OT1/pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/
-m/n/12 Each regime must have a unique theta value specified as the selective op
-tima\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 )[][] 
- []
-
-
-Overfull \hbox (534.71208pt too wide) in paragraph at lines 214--214
-[]  []\OT1/pcr/b/n/12 set.phenotypic.values[][]\OT1/pcr/m/n/12 ([][]curr.node[]
-[]=[][]1[][],[] []anc.node[][]=[][]0[][],[] []anc.pheno[][]=root.pheno,[] []tre
-e[][]=tree,[] []regimes[][]=regimes,[] []theta[][]=theta,[] []alpha[][]=alpha,[
-] []sigma[][]=sigma)[][] 
- []
-
-
-Overfull \hbox (52.31229pt too wide) in paragraph at lines 222--222
-[][]\OT1/pcr/m/sl/12 ## Calculate the phenotypic value of the ancestral node as
- being drawn[][] 
- []
-
-
-Overfull \hbox (37.9123pt too wide) in paragraph at lines 230--230
-[][]\OT1/pcr/m/sl/12 ## This function recursively sets the phenotypic values of
- the nodes[][] 
- []
-
-
-Overfull \hbox (2.90826pt too wide) in paragraph at lines 231--231
-[][]\OT1/pcr/m/sl/12 ## in an ouchtree object specified by tree.  The values ar
-e, by[][] 
- []
-
-
-Overfull \hbox (288.7122pt too wide) in paragraph at lines 233--233
-[][]\OT1/pcr/m/n/12 set.phenotypic.values[] []<-[] []\OT1/pcr/b/n/12 function[]
-[]\OT1/pcr/m/n/12 ([][]curr.node[][],[] []anc.node[][],[] []anc.pheno[][],[] []
-tree[][],[] []regimes[][],[] []theta[][],[] []alpha[][],[] []sigma[][]) \OMS/cm
-sy/m/n/12 f[][] 
- []
-
-
-Overfull \hbox (37.9123pt too wide) in paragraph at lines 238--238
-[]    []\OT1/pcr/m/sl/12 ## get the descendents of the root node and set their 
-phenotypes[][] 
- []
-
-
-Overfull \hbox (534.71208pt too wide) in paragraph at lines 240--240
-[]    []\OT1/pcr/b/n/12 Recall[][]\OT1/pcr/m/n/12 ([][]curr.node[][]=desc[[][]1
-[][]],[] []anc.node[][]=curr.node,[] []anc.pheno[][]=anc.pheno,[] []tree[][]=tr
-ee,[] []regimes[][]=regimes,[] []theta[][]=theta,[] []alpha[][]=alpha,[] []sigm
-a[][]=sigma)[][] 
- []
-
-
-Overfull \hbox (534.71208pt too wide) in paragraph at lines 241--241
-[]    []\OT1/pcr/b/n/12 Recall[][]\OT1/pcr/m/n/12 ([][]curr.node[][]=desc[[][]2
-[][]],[] []anc.node[][]=curr.node,[] []anc.pheno[][]=anc.pheno,[] []tree[][]=tr
-ee,[] []regimes[][]=regimes,[] []theta[][]=theta,[] []alpha[][]=alpha,[] []sigm
-a[][]=sigma)[][] 
- []
-
-
-Overfull \hbox (88.31227pt too wide) in paragraph at lines 246--246
-[]    []\OT1/pcr/m/n/12 t[] []<-[] []\OT1/pcr/b/n/12 as.numeric[][]\OT1/pcr/m/n
-/12 (tree[][]@[][]times[][][curr.node])[][]-[][]\OT1/pcr/b/n/12 as.numeric[][]\
-OT1/pcr/m/n/12 (tree[][]@[][]times[][][anc.node])[][] 
- []
-
-
-Overfull \hbox (9.1123pt too wide) in paragraph at lines 247--247
-[]    []\OT1/pcr/m/n/12 th[] []<-[] []theta[[][]\OT1/pcr/b/n/12 as.numeric[][]\
-OT1/pcr/m/n/12 ([][]\OT1/pcr/b/n/12 levels[][]\OT1/pcr/m/n/12 (regimes)[regimes
-[curr.node]])][][] 
- []
-
-
-Overfull \hbox (45.54428pt too wide) in paragraph at lines 255--255
-[]    []\OT1/pcr/m/sl/12 ## if the curr.node is not a tip, get its ancestors an
-d set their[][] 
- []
-
-
-Overfull \hbox (102.71227pt too wide) in paragraph at lines 262--262
-[]        []\OT1/pcr/b/n/12 Recall[][]\OT1/pcr/m/n/12 ([][]curr.node[][]=desc[n
-],[] []anc.node[][]=curr.node,[] []anc.pheno[][]=p,[] []tree[][]=tree,[][] 
- []
-
-
-Overfull \hbox (52.31229pt too wide) in paragraph at lines 263--263
-[]               []\OT1/pcr/m/n/12 regimes[][]=regimes,[] []theta[][]=theta,[] 
-[]alpha[][]=alpha,[] []sigma[][]=sigma)[][] 
- []
-
-
-Overfull \hbox (3637.91077pt too wide) in paragraph at lines 272--272
-[]    []\OT1/pcr/m/n/12 seeds[] []<-[] []\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 (
-[][]35250[][],[][]48305[][],[][]512[][],[][]9741[][],[][]10942[][],[][]82785[][
-],[][]3690754[][],[][]52887[][],[][]2694830[][],[][]31665[][],[][]42307[][],[][
-]64469[][],[][]35257[][],[][]68441[][],[][]92488[][],[][]91977[][],[][]35279[][
-],[][]63427[][],[][]46032[][],[][]64842[][],[][]20056[][],[][]13808[][],[][]684
-27[][],[][]79904[][],[][]36216[][],[][]762795[][],[][]79173[][],[][]59583[][],[
-][]47372[][],[][]7590702[][],[][]90416[][],[][]73212[][],[][]33918[][],[][]9982
-9[][],[][]35133[][],[][]83037[][],[][]34561[][],[][]1252[][],[][]77451[][],[][]
-21182[][],[][]68657[][],[][]80080[][],[][]58622[][],[][]23352[][],[][]92605[][]
-,[][]61669[][],[][]94680[][],[][]70448[][],[][]62496[][],[][]86767[][],[][]5053
-2[][],[][]32082[][],[][]6873[][],[][]52895[][],[][]52446[][],[][]59809[][],[][]
-50041[][],[][]69135[][],[][]87196[][],[][]16166[][],[][]35368[][],[][]6690[][],
-[][]57828[][],[][]532[][],[][]12679[][],[][]55138[][],[][]50109[][],[][]45607[]
-[],[][]97207[][],[][]11457[][],[][]17776[][],[][]421650[][],[][]46569[][],[][]6
-7892[][],[][]3646[][],[][]80656[][],[][]3812264[][],[][]78324[][],[][]88179[][]
-,[][]2143[][],[][]3091624[][],[][]4407[][],[][]30378[][],[][]2489714[][],[][]59
-83027[][],[][]57710[][],[][]13597[][],[][]10252[][],[][]91772[][],[][]70484[][]
-,[][]4685585[][])[][] 
- []
-
-
-Overfull \hbox (664.31203pt too wide) in paragraph at lines 275--275
-[]    []\OT1/pcr/m/n/12 pseeds[] []<-[] []\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 
-([][]429561[][],[][]582711[][],[][]910097[][],[][]733148[][],[][]536289[][],[][
-]732902[][],[][]397913[][],[][]193437[][],[][]466449[][],[][]731455[][],[][]229
-950[][],[][]492461[][],[][]462732[][],[][]95019[][],[][]379477[][],[][]553164[]
-[],[][]806700[][],[][]771928[][],[][]524934[][],[][]268107[][])[][] 
- []
-
-
-Overfull \hbox (9.1123pt too wide) in paragraph at lines 277--277
-[]    []\OT1/pcr/m/n/12 results[] []<-[] []\OT1/pcr/b/n/12 array[][]\OT1/pcr/m/
-n/12 ([][]NA[][],[] []dim[][]=[][]\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 ([][]\OT
-1/pcr/b/n/12 length[][]\OT1/pcr/m/n/12 (seeds)[][]*[][]\OT1/pcr/b/n/12 length[]
-[]\OT1/pcr/m/n/12 (pseeds),[][]13[][]))[][] 
- []
-
-
-Overfull \hbox (59.51228pt too wide) in paragraph at lines 285--285
-[]        []\OT1/pcr/m/n/12 labels[[][]\OT1/pcr/b/n/12 which[][]\OT1/pcr/m/n/12
- (tree[][]$[][]time[][]==[][]1[][])][] []<-[] []\OT1/pcr/b/n/12 paste0[][]\OT1/
-pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 Sp\TS1/pcr/m/n/12 '[][]\OT1/pc
-r/m/n/12 ,[][]1[][]:[][]\OT1/pcr/b/n/12 sum[][]\OT1/pcr/m/n/12 (tree[][]$[][]ti
-me[][]==[][]1[][]))[][] 
- []
-
-
-Overfull \hbox (311.51218pt too wide) in paragraph at lines 287--287
-[]        []\OT1/pcr/m/n/12 ou.tree[] []<-[] []\OT1/pcr/b/n/12 ouchtree[][]\OT1
-/pcr/m/n/12 ([][]nodes[][]=tree[][]$[][]node,[] []ancestors[][]=tree[][]$[][]an
-cestor,[] []times[][]=tree[][]$[][]time,[] []labels[][]=tree[][]$[][]labels)[][
-] 
- []
-
-
-Overfull \hbox (181.91223pt too wide) in paragraph at lines 288--288
-[]        []\OT1/pcr/m/n/12 ou.reg[] []<-[] []\OT1/pcr/b/n/12 paint[][]\OT1/pcr
-/m/n/12 (ou.tree,[] []subtree[][]=[][]\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 ([][
-]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 1\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 =[][]\T
-S1/pcr/m/n/12 '\OT1/pcr/m/n/12 1\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/
-pcr/m/n/12 '\OT1/pcr/m/n/12 2\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 =[][]\TS1/pcr
-/m/n/12 '\OT1/pcr/m/n/12 2\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ),[] []branch[][
-]=[][]\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/1
-2 1\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 =[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 1
-\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[] []\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 2\T
-S1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 =[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 2\TS1/
-pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ))[][] 
- []
-
-
-Overfull \hbox (16.3123pt too wide) in paragraph at lines 290--290
-[]        []\OT1/pcr/b/n/12 source[][]\OT1/pcr/m/n/12 ([][]"convert.R"[][])[] [
-]\OT1/pcr/m/sl/12 ## for converting ouchtree to apetree[][] 
- []
-
-
-Overfull \hbox (9.1123pt too wide) in paragraph at lines 296--296
-[]        []\OT1/pcr/m/sl/12 ## which daughter corresponds to node 2 in the ouc
-htree?[][] 
- []
-
-
-Overfull \hbox (203.51222pt too wide) in paragraph at lines 297--297
-[]        []\OT1/pcr/m/n/12 node2[] []<-[] []\OT1/pcr/b/n/12 which[][]\OT1/pcr/
-m/n/12 ([][]\OT1/pcr/b/n/12 round[][]\OT1/pcr/m/n/12 (ape.tree[][]$[][]edge.len
-gth[daughters],[][]4[][])[][]==[][]\OT1/pcr/b/n/12 round[][]\OT1/pcr/m/n/12 (ou
-.tree[][]@[][]times[][][[][]2[][]],[][]4[][]))[][] 
- []
-
-
-Overfull \hbox (16.3123pt too wide) in paragraph at lines 303--303
-[]        []\OT1/pcr/m/n/12 nodes[] []<-[] [](ou.tree[][]@[][]nterm[][]+[][]1[]
-[])[][]:[][](ape.tree[][]$[][]Nnode[][]+[][]ou.tree[][]@[][]nterm[][])[][] 
- []
-
-
-Overfull \hbox (81.11227pt too wide) in paragraph at lines 309--309
-[]        []\OT1/pcr/m/sl/12 ## Plot trees to ensure that the trees and paintin
-gs are identical[][] 
- []
-
-
-Overfull \hbox (181.91223pt too wide) in paragraph at lines 318--318
-[]            []\OT1/pcr/m/n/12 x[] []<-[] []\OT1/pcr/b/n/12 gen.phenotypic.val
-ues[][]\OT1/pcr/m/n/12 (ou.tree, ou.reg,[] []theta[][]=[][]\OT1/pcr/b/n/12 c[][
-]\OT1/pcr/m/n/12 ([][]-[][]1[][],[][]1[][]),[] []alpha[][]=[][]3[][],[] []sigma
-[][]=[][]1[][])[][] 
- []
-
-
-Overfull \hbox (88.31227pt too wide) in paragraph at lines 324--324
-[]            []\OT1/pcr/m/n/12 ape.dat[] []<-[] []ape.dat[[][]![][]\OT1/pcr/b/
-n/12 is.na[][]\OT1/pcr/m/n/12 (ape.dat[][]$[][]val),[][]\OT1/pcr/b/n/12 c[][]\O
-T1/pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 labels\TS1/pcr/m/n/12 '[][]
-\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 reg\TS1/pcr/m/n/12 '[][]\
-OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 val\TS1/pcr/m/n/12 '[][]\O
-T1/pcr/m/n/12 )][][] 
- []
-
-
-Overfull \hbox (88.31227pt too wide) in paragraph at lines 327--327
-[]            []\OT1/pcr/m/n/12 ou.OU[] []<-[] []\OT1/pcr/b/n/12 hansen[][]\OT1
-/pcr/m/n/12 (ou.dat, ou.tree, ou.reg,[] []sqrt.alpha[][]=[][]1[][],[] []sigma[]
-[]=[][]1[][])[][] 
- []
-
-
-Overfull \hbox (189.11223pt too wide) in paragraph at lines 331--331
-[]                  []\OT1/pcr/b/n/12 as.numeric[][]\OT1/pcr/m/n/12 ([][]\OT1/p
-cr/b/n/12 sapply[][]\OT1/pcr/m/n/12 ([][]\OT1/pcr/b/n/12 c[][]\OT1/pcr/m/n/12 (
-[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 1\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][
-]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 2\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ),[][]\
-OT1/pcr/b/n/12 function[][]\OT1/pcr/m/n/12 ([][]x[][])[][]\OT1/pcr/b/n/12 sum[]
-[]\OT1/pcr/m/n/12 (ou.reg[ou.tree[][]@[][]term[][]][][]==[][]x))),[][] 
- []
-
-
-Overfull \hbox (844.31195pt too wide) in paragraph at lines 343--343
-[]    []\OT1/pcr/b/n/12 colnames[][]\OT1/pcr/m/n/12 (results)[] []<-[] []\OT1/p
-cr/b/n/12 c[][]\OT1/pcr/m/n/12 ([][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ntips\TS1/
-pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 nreg1\TS1
-/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 nreg2\TS
-1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ouch.ai
-c\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ouc
-h.alpha\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/
-12 ouch.sigma.sq\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1
-/pcr/m/n/12 ouch.th1\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/12 '
-\OT1/pcr/m/n/12 ouch.th2\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr/m/n/
-12 '\OT1/pcr/m/n/12 ouwie.aic\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\TS1/pcr
-/m/n/12 '\OT1/pcr/m/n/12 ouwie.alpha\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n/12 ,[][]\
-TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ouwie.sigma.sq\TS1/pcr/m/n/12 '[][]\OT1/pcr/m/n
-/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ouwie.th1\TS1/pcr/m/n/12 '[][]\OT1/pc
-r/m/n/12 ,[][]\TS1/pcr/m/n/12 '\OT1/pcr/m/n/12 ouwie.th2\TS1/pcr/m/n/12 '[][]\O
-T1/pcr/m/n/12 )[][] 
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-[4 <./figure/unnamed-chunk-3-1.pdf>]
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-[5]
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-[6]
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-[7]
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-
-Underfull \vbox (badness 10000) detected at line 348
- []
-
-[8] [9] (./Comparing_OUwie_and_ouch_2020.aux) ) 
+<figure/unnamed-chunk-5-1.pdf, id=41, 361.35pt x 433.62pt>
+File: figure/unnamed-chunk-5-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-5-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-5-1.pdf used on input line 160.
+(pdftex.def)             Requested size: 361.34912pt x 433.61894pt.
+Package color Info: Redefining color shadecolor on input line 167.
+
+<figure/unnamed-chunk-6-1.pdf, id=42, 361.35pt x 289.08pt>
+File: figure/unnamed-chunk-6-1.pdf Graphic file (type pdf)
+
+<use figure/unnamed-chunk-6-1.pdf>
+Package pdftex.def Info: figure/unnamed-chunk-6-1.pdf used on input line 168.
+(pdftex.def)             Requested size: 361.34912pt x 289.07928pt.
+ [4 <./figure/unnamed-chunk-3-1.pdf>]
+[5 <./figure/unnamed-chunk-4-1.pdf>] [6 <./figure/unnamed-chunk-5-1.pdf>]
+[7 <./figure/unnamed-chunk-6-1.pdf>] (./Comparing_OUwie_and_ouch_2020.aux) ) 
 Here is how much of TeX's memory you used:
- 5038 strings out of 493089
- 73153 string characters out of 6134842
- 203391 words of memory out of 5000000
- 8263 multiletter control sequences out of 15000+600000
- 18156 words of font info for 56 fonts, out of 8000000 for 9000
+ 5013 strings out of 493089
+ 72967 string characters out of 6134842
+ 137611 words of memory out of 5000000
+ 8243 multiletter control sequences out of 15000+600000
+ 18720 words of font info for 54 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 44i,6n,42p,2104b,340s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2015/texmf-d
-ist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2015/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/co
-urier/ucrb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/courier/uc
-rr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/courier/ucrro8a.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on Comparing_OUwie_and_ouch_2020.pdf (9 pages, 167209 bytes).
+ 44i,6n,42p,1121b,341s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/u
+sr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texliv
+e/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive
+/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2
+015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2015
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/
+texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2015/texmf-di
+st/fonts/type1/urw/courier/ucrro8a.pfb></usr/local/texlive/2015/texmf-dist/font
+s/type1/urw/times/utmr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/ur
+w/times/utmri8a.pfb>
+Output written on Comparing_OUwie_and_ouch_2020.pdf (7 pages, 203878 bytes).
 PDF statistics:
- 94 PDF objects out of 1000 (max. 8388607)
- 68 compressed objects within 1 object stream
+ 115 PDF objects out of 1000 (max. 8388607)
+ 85 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
