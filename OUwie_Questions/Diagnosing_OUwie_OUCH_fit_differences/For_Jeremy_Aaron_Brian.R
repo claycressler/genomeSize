@@ -221,24 +221,44 @@ ouwie.theta.1<-pseudoinverse(t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%ouwie.W.1)%
 ##
 ##############################################################3
 
-## If you plug the OUCH weight and covariance matrices for the single-regime case into the OUwie calcuation, you get results that are identical to the OUwie results. (Note that I have to reverse the order of the data because the tips are ordered differently between the OUCH tree and the OUwie tree: sapply(ape.tree$tip.label, function(n) which(ou.tree@nodelabels[90:195]==n)) %>% as.numeric)
-pseudoinverse(t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%ouch.W.1)%*%t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%rev(x)
-pseudoinverse(t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%ouwie.W.1)%*%t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%x
+## Recover the OUCH data
+dat <- do.call(c,lapply(ou.dat,function(y)y[ou.tree@term]))
 
-## This also works in the other direction - if you plug the OUwie matrices into the OUCH calculation, you get the OUCH result back out again
+## This confirms that the two methods of executing equation (A8) in Butler and King (2004) produce identical results, given covariance and weight matrices and phenotypic data
+pseudoinverse(t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%ouwie.W.1)%*%t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%x
+glssoln(ouwie.W.1,x,ouwie.V)$coeff
+pseudoinverse(t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%ouch.W.1)%*%t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%dat
+glssoln(ouch.W.1,dat,ouch.V)$coeff
+
+## If you use the OUCH matrices with the OUwie data, you get back the OUwie result
+pseudoinverse(t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%ouch.W.1)%*%t(ouch.W.1)%*%pseudoinverse(ouch.V)%*%rev(x)
+ouwie.theta.1
+
+## If you use the OUwie matrices with the OUCH data, you get back the OUCH result
+glssoln(ouwie.W.1,rev(dat),ouwie.V)$coeff
+ouch.theta.1
+
+## This indicates that the issue may have something to do with the way data is being dealt with internally in either OUCH or OUwie.
+
+
+
+## However: these comparisons do not work for the two-regime model. If you use the OUCH matrices with the OUwie data, you do not get either the OUwie or OUCH results
+pseudoinverse(t(ouch.W.2)%*%pseudoinverse(ouch.V)%*%ouch.W.2)%*%t(ouch.W.2)%*%pseudoinverse(ouch.V)%*%rev(x)
+ouch.theta.2
+ouwie.theta.2
+
+## If you use the OUwie matrices with the OUCH data, you do not get either the OUwie or OUCH results either
+glssoln(ouwie.W.2,rev(dat),ouwie.V)$coeff
+ouch.theta.2
+ouwie.theta.2
+
+########################################################
+### RANDOM, POORLY DEVELOPED THOUGHTS BELOW HERE!!! ####
+########################################################
+
 dat <- do.call(c,lapply(ou.dat,function(y)y[ou.tree@term]))
 glssoln(ouch.W.1,dat,ouch.V)$coeff
 glssoln(ouwie.W.1,rev(dat),ouwie.V)$coeff
-
-## But these two do not agree. This suggests that the problem is with what OUwie is doing internally to the phenotypic data.
-glssoln(ouwie.W.1,rev(dat),ouwie.V)$coeff
-glssoln(ouwie.W.1,x,ouwie.V)$coeff 
-
-## But this is not true for the tworegime case
-pseudoinverse(t(ouch.W.2)%*%pseudoinverse(ouch.V)%*%ouch.W.2)%*%t(ouch.W.2)%*%pseudoinverse(ouch.V)%*%rev(x)
-ouwie.theta.2
-
-
 
 ## Weight matrices for the single regime case are identical
 ouch.W.1
