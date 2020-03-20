@@ -134,16 +134,32 @@ summary(xMpleth.OUwieparams)
 xMpleth.OUM
 ## Interestingly, this is helpful. The theta values are different between ouch and OUwie. From the appendix of Butler and King, it is clear that the theta values can be directly calculated from the covariance and weight matrices (Eq A8), so the fact that the estimates of theta are different even when the supplied alpha values are identical suggests that these two matrices are being computed differently by the two algorithms.
 
+## Can also try this: start an optimizer run at that value
+res.ou.2 <- hansen(gsz, tree, regimes, sqrt.alpha=sqrt(xMpleth.OUM$solution[1]), sigma = sqrt(xMpleth.OUM$solution[2]))
+
+## save everything for ease of use later
+ou.tree <- tree
+ou.dat <- gsz
+ou.reg <- regimes
+ape.tree <- tree_xMpleth
+ape.dat <- data.xMpleth
+
+treelist <- list(ou.tree=ou.tree, ou.dat=ou.dat, ou.reg=ou.reg, ape.tree=ape.tree, ape.dat=ape.dat)
+saveRDS(treelist, "treelist.RDS")
+
 #########################################################################
 #                                                                       #
 #	COMPUTING THE WEIGHT AND COVARIANCE MATRICES FOR OUCH           #
 #                                                                       #
 #########################################################################
+
+
 data <- gsz
 tree <- tree
 regimes <- regimes
-sqrt.alpha <- sqrt(2.357531e-9) ## from xMpleth.OUM
-sigma <- sqrt(1.232192e-1)
+## do a simplified case with a single-optimum OU model
+sqrt.alpha <- 1 ## from xMpleth.OUM
+sigma <- 1
 
 ## From inside hansen.R hansen() function
 source("hansen.R")
@@ -263,6 +279,9 @@ gsol <- try(
 gsol$coeff
 theta
 ## These agree, so the differences are due to each method's way of calculating the covariance and weight matrices
+
+## Let's a do a simpler analysis, one where there is only a SINGLE regime. See if the weight and covariance matrices that are produced under that scenario are the same. My guess (only a guess) is that it has something to do with the regime specification. If I'm right, then that helps a lot with figuring out what's going on.
+
 
 ##################################################################
 ##
