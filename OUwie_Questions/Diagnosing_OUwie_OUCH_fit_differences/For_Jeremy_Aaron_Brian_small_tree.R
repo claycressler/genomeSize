@@ -106,6 +106,11 @@ gsol.2 <- try(
 ouch.theta.1 <- gsol.1$coeff
 ouch.theta.2 <- gsol.2$coeff
 
+e <- gsol.2$residuals
+q <- e%*%solve(ouch.V,e)
+det.v <- determinant(ouch.V,logarithm=TRUE)
+dev <- n*log(2*pi)+as.numeric(det.v$modulus)+q[1,1]
+
 #########################################################################
 #                                                                       #
 #	COMPUTING THE WEIGHT AND COVARIANCE MATRICES FOR OUwie          #
@@ -309,7 +314,14 @@ exp.W = data.frame(
         rep(0, 13)))
 exp.W/rowSums(exp.W)
 ## now the weights for species 1-7 match the OUwie weight matrix, whereas the weights for species 8-20 match the ouch weight matrix!?
-OUwie.W.2
+ouwie.W.2
 ouch.W.2
 
 ## My last note here is that the OUCH weight matrix entries for Sp 1-7 in regime 1 are equal to exp(-1) and in regime 2 are equal to exp(0)-exp(-1), which seems oddly coincidental to me.
+
+## Also, I could fuck around with the covariance matrix. In particular, according to A5, the variance within a species should be equal to sigma.sq/(2*alpha) * exp(0) * (1-exp(-2*alpha*1)), which is exactly what OUwie has, whereas ouch has it equal to 0.5.
+1/2 * exp(0) * (1-exp(-2))
+
+## The covariance between Sp 1-7 and Sp 8-20 should be equal to sigma.sq/(2*alpha) * exp(-2*alpha*1)*(1-exp(-2*alpha*0)) because they diverge at t=0
+1/2 * exp(-2) * (1-exp(0))
+## again, the OUwie calculation agrees with this, but the ouch one is different

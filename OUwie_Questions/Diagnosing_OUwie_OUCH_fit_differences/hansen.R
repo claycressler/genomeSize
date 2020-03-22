@@ -59,12 +59,12 @@ hansen <- function (data, tree, regimes, sqrt.alpha, sigma,
 
   nchar <- length(data)
   if (is.null(names(data))) names(data) <- paste('char',seq_len(nchar),sep='')
-  
+
   if (any(sapply(data,function(x)(is.null(names(x)))||(!setequal(names(x),tree@nodes)))))
     stop("each data set must have names corresponding to the node names")
   data <- lapply(data,function(x)x[tree@nodes])
   dat <- do.call(c,lapply(data,function(y)y[tree@term]))
-  
+
   nsymargs <- nchar*(nchar+1)/2
   nalpha <- length(sqrt.alpha)
   nsigma <- length(sigma)
@@ -97,7 +97,7 @@ hansen <- function (data, tree, regimes, sqrt.alpha, sigma,
     regimes <- list(regimes)
     names(regimes) <- nm
   }
-  
+
   if (any(!sapply(regimes,is.factor)))
     stop(sQuote("regimes")," must be of class ",sQuote("factor")," or a list of ",sQuote("factor")," objects")
 
@@ -198,7 +198,7 @@ hansen <- function (data, tree, regimes, sqrt.alpha, sigma,
     names(theta[[n]]) <- as.character(reg[[n]])
     count <- count+length(reg[[n]])
   }
-  
+
   new(
       'hansentree',
       as(tree,'ouchtree'),
