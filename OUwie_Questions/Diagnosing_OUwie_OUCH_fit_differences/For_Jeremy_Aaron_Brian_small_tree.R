@@ -120,6 +120,7 @@ dev <- n*log(2*pi)+as.numeric(det.v$modulus)+q[1,1]
 ## Here are the key functions
 source("varcov.ou.R")
 source("weight.mat.R")
+
 ## the two-regime phylogeny and phenotypic data
 phy.2 <- ape.tree
 data.2 <- ape.dat
@@ -227,6 +228,11 @@ N<-length(x[,1])
 ouwie.W.1<-weight.mat(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scaleHeight=TRUE, assume.station=TRUE)
 ## here is the calculation of the thetas
 ouwie.theta.1<-pseudoinverse(t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%ouwie.W.1)%*%t(ouwie.W.1)%*%pseudoinverse(ouwie.V)%*%x
+
+## If you use this hacked OUwie.R, it will also return the weight matrix
+## This verifies that the above calculations are working.
+source("OUwie.R")
+ouwie.OUM <- OUwie(ape.tree, ape.dat, model='OUM', root.station=TRUE, scaleHeight=TRUE)
 
 ##############################################################3
 ##

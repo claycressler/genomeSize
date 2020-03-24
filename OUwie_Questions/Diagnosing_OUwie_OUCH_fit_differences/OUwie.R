@@ -234,7 +234,8 @@ OUwie<-function(phy,data, model=c("BM1","BMS","OU1","OUM","OUMV","OUMA","OUMVA")
 	Rate.mat <- matrix(1, 2, k)
 	#Likelihood function for estimating model parameters
 	dev<-function(p, index.mat, edges, mserr){
-            ## Hacked this to force the comparison I want to make
+            ## Hacked this to force alpha=1, sigma.sq=1
+            ## Note that it will not optimize any more, but it will allow me to make the comparison I want to make.
             p <- c(1,1)
 
 		Rate.mat[] <- c(p, 1e-10)[index.mat]
