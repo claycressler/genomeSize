@@ -1,0 +1,128 @@
+## The purpose of this code is to compare how OUwie and OUCH and calculate the covariance and weight matrices.
+require(ouch)
+
+#########################################################################
+#                                                                       #
+#	     GENERATE A THREE-TIP TREE WITH TWO REGIMES                 #
+#                                                                       #
+#########################################################################
+gen.tree <- function(waittime, endtime,
+                     time = 0, extrate = 0,
+                     anc.node = NA, tree) {
+    if (missing(tree))
+        tree <- matrix(NA,0,3,
+                       dimnames=list(NULL,c("node","ancestor","time")))
+    curr.node <- nrow(tree)+1
+    if (time < endtime) {
+        tree <- rbind(tree,c(curr.node,anc.node,time))
+        extinct.time <- if (extrate > 0) {
+            time+rexp(2,rate=extrate)
+        } else {
+            c(Inf,Inf)
+        }
+        time <- pmin(time+rexp(2,rate=1/waittime),endtime)
+        for (k in 1:2) {
+            if (time[k] < extinct.time[k]) {
+                tree <- Recall(time=time[k],
+                               waittime=waittime,endtime=endtime,extrate=extrate,anc.node=curr.node,tree=tree)
+            } else {
+                tree <- rbind(tree,c(nrow(tree)+1,curr.node,extinct.time[k]))
+            }
+        }
+    } else {
+        tree <- rbind(tree,c(curr.node,anc.node,time))
+    }
+    return(as.data.frame(tree))
+}
+
+set.seed(7787358)
+tree <- gen.tree(waittime=0.8, endtime=1)
+labels <- rep('', nrow(tree))
+labels[which(tree$time==1)] <- paste0('Sp',1:sum(tree$time==1))
+tree$labels <- labels
+ou.tree <- ouchtree(nodes=tree$node, ancestors=tree$ancestor, times=tree$time, labels=tree$labels)
+ou.reg <- paint(ou.tree, subtree=c('1'='1','2'='2'), branch=c('1'='1', '2'='2'))
+plot(ou.tree, regimes=ou.reg)
+
+#########################################################################
+#                                                                       #
+#	      COMPUTING THE WEIGHT AND COVARIANCE MATRICES              #
+#                                                                       #
+#########################################################################
+
+## From hansen.R
+regime.spec <- function (object, regimes) {
+  nterm <- object@nterm
+  nchar <- length(regimes)
+  reg <- sets.of.regimes(object,regimes)
+  nreg <- sapply(reg,length)
+  beta <- vector(mode='list',length=nterm)
+  for (i in seq_len(nterm)) {
+    p <- object@lineages[[object@term[i]]]
+    np <- length(p)
+    beta[[i]] <- vector(mode='list',length=nchar)
+    for (n in seq_len(nchar)) {
+      beta[[i]][[n]] <- matrix(data=NA,nrow=np,ncol=nreg[n])
+      for (ell in seq_len(nreg[n])) {
+        beta[[i]][[n]][,ell] <- ifelse(regimes[[n]][p]==reg[[n]][ell],1,0)
+      }
+    }
+  }
+  beta
+}
+
+sym.par <- function (x) {
+  nchar <- floor(sqrt(2*length(x)))
+  if (nchar*(nchar+1)!=2*length(x)) {
+    stop("a symmetric matrix is parameterized by a triangular number of parameters",call.=FALSE)
+  }
+  y <- matrix(0,nchar,nchar)
+  y[lower.tri(y,diag=TRUE)] <- x
+  y%*%t(y)
+}
+
+sets.of.regimes <- function (object, regimes) {
+  lapply(regimes,function(x)sort(unique(x)))
+}
+
+## Parameter estimates
+sqrt.alpha <- 1
+sigma <- 1
+
+## From inside hansen.R hansen() function
+## Compute beta for the two-regime case
+nm <- deparse(substitute(ou.reg))[1]
+regimes <- list(ou.reg)
+names(regimes) <- nm
+regimes <- rep(regimes,3)
+regimes <- lapply(regimes,function(x)x[ou.tree@nodes])
+beta <- regime.spec(ou.tree,regimes)
+
+
+## From inside hansen.R ou.lik.fn() function
+alpha <- sym.par(sqrt.alpha)
+sigma <- sym.par(sigma)
+ev <- eigen(alpha,symmetric=TRUE)
+
+## Compute the weight matrix for the single regime and two-regime cases
+if(file.exists("weight-matrix.so")) {## rebuild C executable on this computer
+    system("rm weight-matrix.so")
+    system("rm weight-matrix.o")
+}
+system("R CMD SHLIB weight-matrix.c")
+dyn.load("weight-matrix.so")
+ouch.W <- .Call("ouch_weights",object=ou.tree,lambda=ev$values,S=ev$vectors,beta=beta)
+
+## Compute the covariance matrix, which does not depend on regime paintings
+if(file.exists("covar-matrix.so")) {## rebuild C executable on this computer
+    system("rm covar-matrix.so")
+    system("rm covar-matrix.o")
+}
+system("R CMD SHLIB covar-matrix.c")
+dyn.load("covar-matrix.so")
+ouch.V <- .Call("ouch_covar",object=ou.tree,lambda=ev$values,S=ev$vectors,sigma.sq=sigma)
+
+print("Weight matrix:")
+print(ouch.W)
+print("Covariance matrix:")
+print(ouch.V)

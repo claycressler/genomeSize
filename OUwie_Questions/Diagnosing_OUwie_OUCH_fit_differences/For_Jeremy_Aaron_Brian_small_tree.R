@@ -325,3 +325,32 @@ ouch.W.2
 ## The covariance between Sp 1-7 and Sp 8-20 should be equal to sigma.sq/(2*alpha) * exp(-2*alpha*1)*(1-exp(-2*alpha*0)) because they diverge at t=0
 1/2 * exp(-2) * (1-exp(0))
 ## again, the OUwie calculation agrees with this, but the ouch one is different
+
+##############################################################3
+##
+##               THE SOLUTION FROM AARON!
+##
+##############################################################3
+
+ouch.exp.W <- matrix(0, ncol=2, nrow=3)
+## Okay, from Aaron I understand this now. The regime at the root is critical and must be taken into account, because regardless of what regime a tip ends up in, we assume it has spent an infinite amount of time in the root regime. So, for this case where the root is in regime 1, and Sp1-7 and Sp2 have spent T=1 time units evolving under regime 2, the weight of regime 1 is:
+ouch.exp.W[1:7,1] <- exp(-1) + exp(-1) * (exp(0)-exp(0))
+## This can be understood in the following way: the infinite amount of time that these species spent in regime 1 is captured by exp(-1). From t=0, though, the influence of regime 1 wanes. This waning is captured by exp(-1) * (exp(0)-exp(0)).
+## The weight for regime 2, on the other hand is just:
+ouch.exp.W[1:7,2] <- exp(-1) * (exp(1)-exp(0))
+## reflecting the increasing influence of regime 2
+## Species 8-20, on the other hand, have never been in any other regime, so the weight of regime 1 is
+ouch.exp.W[8:20,1] <- exp(-1) + exp(-1) * (exp(1)-exp(0))
+print("ouch: expected weight matrix based on Eq A7")
+print(ouch.exp.W)
+
+
+## For OUwie, however, which presumes that regime switches happen halfway down branches, the weights would be different:
+ouwie.exp.W <- matrix(0, ncol=2, nrow=3)
+## Weight of regime 1 for Sp1-7
+ouwie.exp.W[1:7,1] <- exp(-1) + exp(-1) * (exp(ou.tree@times[2]/2-exp(0)))
+## Weight of regime 2 for Sp1-7
+ouwie.exp.W[1:7,2] <- exp(-1) * (exp(1)-exp(ou.tree@times/2))
+## Weight of regime 1 for Sp8-20
+ouwie.exp.W[8:20,1] <- exp(-1) + exp(-1) * (exp(1)-exp(0))
+
