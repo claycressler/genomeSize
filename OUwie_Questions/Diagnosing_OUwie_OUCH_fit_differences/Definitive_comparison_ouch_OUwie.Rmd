@@ -1,0 +1,37 @@
+---
+title: "A defintive comparison of ouch and OUwie"
+author: "Clay Cressler"
+date: "27/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this document, I will try to fully describe, in a single place, all of the known differences between \texttt{ouch} and \texttt{OUwie}, focusing especially on differences in how they compute the weight and covariance matrices, as those are key to the fitting procedures of each program.
+To pick a particular case, I will use the sample data contained in the 'tworegime' dataset that is part of \texttt{OUwie}.
+
+```{r}
+library(OUwie, quietly=TRUE)
+data(tworegime)
+ls()
+```
+
+Some cursory examination of this dataset makes it clear it is a realistic phylogeny with 64 tips and 63 internal nodes (no polytomies), with a single regime switch occurring between the ancestral black regime and the red regime.
+
+```{r regimes, fig.cap="Fig. 1. The 'tworegime' phylogeny and regime painting.", fig.height=10, fig.width=5, units='in', res=300, echo=FALSE}
+plot(tree)
+nodelabels(pch=21, bg=tree$node.label)
+```
+
+An examination of the phenotypic data suggests that the species in the different regimes have different mean phenotypic values.
+
+```{r phenotypicData, fig.cap="Fig. 2. Phenotypic data for the two regimes.", fig.height=5, fig.width=5, units='in', res=300, echo=FALSE}
+with(trait, plot(as.factor(Reg), X, xlab='Regime', ylab="Trait"))
+```
+
+I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the \texttt{OUwie} package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by \texttt{ouch} as possible, as \texttt{ouch} scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. This produces estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$.
+```{r OUwieFit}
+OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
+```
