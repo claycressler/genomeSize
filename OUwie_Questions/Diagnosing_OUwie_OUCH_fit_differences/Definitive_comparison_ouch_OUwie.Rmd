@@ -13,9 +13,9 @@ In this document, I will try to fully describe, in a single place, all of the kn
 To pick a particular case, I will use the sample data contained in the 'tworegime' dataset that is part of \texttt{OUwie}.
 
 ```{r}
-library(OUwie, quietly=TRUE)
+library(OUwie, quietly=TRUE, warn.conflicts = FALSE)
 data(tworegime)
-ls()
+
 ```
 
 Some cursory examination of this dataset makes it clear it is a realistic phylogeny with 64 tips and 63 internal nodes (no polytomies), with a single regime switch occurring between the ancestral black regime and the red regime.
