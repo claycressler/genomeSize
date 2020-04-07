@@ -9,11 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In this document, I will try to fully describe, in a single place, all of the known differences between \texttt{ouch} and \texttt{OUwie}, focusing especially on differences in how they compute the weight and covariance matrices, as those are key to the fitting procedures of each program.
-To pick a particular case, I will use the sample data contained in the 'tworegime' dataset that is part of \texttt{OUwie}.
+In this document, I will try to fully describe, in a single place, all of the known differences between $\texttt{ouch}$ and $\texttt{OUwie}$, focusing especially on differences in how they compute the weight and covariance matrices, as those are key to the fitting procedures of each program.
+To pick a particular case, I will use the sample data contained in the 'tworegime' dataset that is part of $\texttt{OUwie}$.
 
 ```{r}
-library(OUwie, quietly=TRUE)
+library(OUwie, quietly=TRUE, warn.conflicts=FALSE)
+library(ouch, quietly=TRUE, warn.conflicts=FALSE)
+library(phytools, quietly=TRUE, warn.conflicts=FALSE)
 data(tworegime)
 ls()
 ```
@@ -31,7 +33,214 @@ An examination of the phenotypic data suggests that the species in the different
 with(trait, plot(as.factor(Reg), X, xlab='Regime', ylab="Trait"))
 ```
 
-I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the \texttt{OUwie} package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by \texttt{ouch} as possible, as \texttt{ouch} scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. This produces estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$.
+I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the $\texttt{OUwie}$ package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by $\texttt{ouch}$ as possible, as $\texttt{ouch}$ scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. This produces estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$.
 ```{r OUwieFit}
-OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
+ouwiefit <- OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
+ouwiefit
+```
+Here's the first sign of trouble between the two methods: if I ask $\texttt{ouch}$ to compute the likelihood of these $\texttt{OUwie}$ parameter estimates, the likelihoods are different. To do this, I first need to convert the tree from 'phylo' format to 'ouchtree' format and then 'paint' the tree with the regime painting. There is a little ambiguity about this painting, specifically on the regime for the branch descending from the root to the clade containing species t33 to t64. Thus I will compare the two different regime paintings, shown below.
+```{r, fig.cap="Fig. 3. One possible regime painting for the $\\texttt{ouch}$ version of the phylogenetic tree and regime painting.", fig.height=10, fig.width=5, units='in', res=300}
+ouch.tree <- ape2ouch(tree)
+regime1 <- paint(ouch.tree, subtree=c('1'=1,'32'=2), branch=c('1'=1))
+regime2 <- paint(ouch.tree, subtree=c('1'=1,'32'=2), branch=c('1'=1,"32"=2))
+plot(ouch.tree, regimes=regime1)
+```
+
+```{r, fig.cap="Fig. 4. The other possible regime painting for the $\\texttt{ouch}$ version of the phylogenetic tree and regime painting.", fig.height=10, fig.width=5, units='in', res=300}
+plot(ouch.tree, regimes=regime2)
+```
+I can now use $\texttt{ouch}$ to fit the phenotypic data and compare these fits to those obtained by $\texttt{OUwie}$. You can see that they converge on different values for selection strength ($\alpha$), drift intensity ($\sigma^2$), and the optima ($\theta_1$ and $\theta_2$). You can also see that the different regime paintings in $\texttt{ouch}$ produce different estimates of the selective optima, but agree on the estimates of selection strength and drift intensity.
+
+```{r, echo=TRUE}
+ouch.trait <- rep(NA, ouch.tree@nnodes)
+## match tips of the ouchtree with tips of the OUwie tree
+ouch.trait[sapply(as.character(trait$Genus_species), function(n) which(ouch.tree@nodelabels==n))] <- trait$X
+names(ouch.trait) <- ouch.tree@nodes
+## fit the ouch model
+ouchfit1 <- hansen(ouch.trait, tree=ouch.tree, regimes=regime1, sqrt.alpha=1, sigma=1)
+ouchfit2 <- hansen(ouch.trait, tree=ouch.tree, regimes=regime2, sqrt.alpha=1, sigma=1)
+## comparing ouch and OUwie fits for selection strength
+fits <- data.frame(
+  alpha=c(ouwiefit$solution["alpha",1], summary(ouchfit1)$alpha, summary(ouchfit2)$alpha),
+  sigma.sq=c(ouwiefit$solution["sigma.sq",1], summary(ouchfit1)$sigma.sq, summary(ouchfit2)$sigma.sq),
+  theta1=c(ouwiefit$theta[1,1], summary(ouchfit1)$optima$ouch.trait[1], summary(ouchfit2)$optima$ouch.trait[1]),
+  theta2=c(ouwiefit$theta[2,1], summary(ouchfit1)$optima$ouch.trait[2], summary(ouchfit2)$optima$ouch.trait[2])
+)
+rownames(fits) <- c("OUwie", "ouch1", "ouch2")
+fits
+```
+
+Moreover, if you calculate the likelihood of the $\texttt{OUwie}$ parameter estimates using the $\texttt{ouch}$ methods, you get different likelihoods and different estimates of the selective optima.
+```{r, echo=TRUE}
+## Likelihoods
+summary(hansen(ouch.trait, tree=ouch.tree, regimes=regime1, sqrt.alpha=sqrt(ouwiefit$solution["alpha",1]), sigma=sqrt(ouwiefit$solution["sigma.sq",1]), fit=FALSE))$loglik
+ouwiefit$loglik
+
+## Optima
+summary(hansen(ouch.trait, tree=ouch.tree, regimes=regime1, sqrt.alpha=sqrt(ouwiefit$solution["alpha",1]), sigma=sqrt(ouwiefit$solution["sigma.sq",1]), fit=FALSE))$optima$ouch.trait
+ouwiefit$theta[,1]
+
+```
+All of this points to differences in how the two methods are estimating the covariance and weight matrices (equations A5 and A7 of Butler and King (2004)). Importantly, the covariance matrix calculation in $\texttt{ouch}$ is slightly modified from equation A5 based on Ho and Ane (2013). Equation (A5) in Butler and King calculates the variance between two tips $i$ and $j$ that diverged at time $s_{ij}$ as
+$$ 
+\begin{equation}
+V_{ij} = \frac{\sigma^2}{2\alpha} e^{-2\alpha(T-s_{ij})}\left(1-e^{-2\alpha s_{ij}}\right)
+\end{equation}
+$$
+Thus, the variance, given the $\texttt{OUwie}$ estimates of $\alpha=1.39$ and $\sigma^2=0.65$ and a tree depth of $T=1$, would be $V_{ii}=$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1]),3)`. This equation was based on the original $\texttt{ouch}$ formulation, where the root state was estimated. Since we instead assume that the root state is drawn from the stationary distribution, there is an additional variance term that has to be added to this calculation. As shown in Ho and Ane (2013), the covariance matrix terms become:
+$$
+\begin{equation}
+V_{ij} = \frac{\sigma^2}{2\alpha} e^{-2\alpha(T-s_{ij})}
+\end{equation}
+$$
+Using this formula, the variance is $V_{ii} = 0.235$. Note that because the values of the covariance matrix depends on the parameter estimates, this difference is not trivial, so it would seem important to make sure that the method of calculating the covariance matrix varies with the assumptions about how to treat the root state (that is, whether to estimate it, or to draw it from the stationary distribution). 
+
+To provide a second point of comparison, for two tips that diverge at the root, the covariance between them is zero in the original formulation (because $s_{ij}=0$, so $1-e^{-2\alpha s_{ij}}=0$), whereas in the Ho and Ane method, $V_{ij} = \sigma^2/2\alpha e^{-2\alpha} = 0.0145$. Note that this is exactly the difference between the variance measurements, and is the additional variance due to the fact that we are assuming that, until $T=0$, the lineage was evolving in the ancestral regime.
+
+Finally, we can compare two tips that are sister to one another (e.g., $t1$ and $t2$). These two tips separated at $t=0.9166974$. According to the original method, the covariance between $t1$ and $t2$ should be  
+
+By digging into the source code for both $\texttt{ouch}$ and $\texttt{OUwie}$, we can directly compare how the two methods calculate the covariance matrix terms. First, for $\texttt{ouch}$, we find that the variance and covariance match the expectation given by the Ho and Ane method. 
+
+```{r, echo=FALSE}
+## compile the C functions for computing the weight and covariance matrices 
+if(file.exists("weight-matrix.so")) {## rebuild C executable on this computer
+    system("rm weight-matrix.so")
+    system("rm weight-matrix.o")
+}
+system("R CMD SHLIB weight-matrix.c", ignore.stdout = TRUE)
+
+if(file.exists("covar-matrix.so")) {## rebuild C executable on this computer
+    system("rm covar-matrix.so")
+    system("rm covar-matrix.o")
+}
+system("R CMD SHLIB covar-matrix.c", ignore.stdout = TRUE)
+```
+
+```{r, echo=TRUE}
+regime.spec <- function (object, regimes) {
+  nterm <- object@nterm
+  nchar <- length(regimes)
+  reg <- sets.of.regimes(object,regimes)
+  nreg <- sapply(reg,length)
+  beta <- vector(mode='list',length=nterm)
+  for (i in seq_len(nterm)) {
+    p <- object@lineages[[object@term[i]]]
+    np <- length(p)
+    beta[[i]] <- vector(mode='list',length=nchar)
+    for (n in seq_len(nchar)) {
+      beta[[i]][[n]] <- matrix(data=NA,nrow=np,ncol=nreg[n])
+      for (ell in seq_len(nreg[n])) {
+        beta[[i]][[n]][,ell] <- ifelse(regimes[[n]][p]==reg[[n]][ell],1,0)
+      }
+    }
+  }
+  beta
+}
+
+sym.par <- function (x) {
+  nchar <- floor(sqrt(2*length(x)))
+  if (nchar*(nchar+1)!=2*length(x)) {
+    stop("a symmetric matrix is parameterized by a triangular number of parameters",call.=FALSE)
+  }
+  y <- matrix(0,nchar,nchar)
+  y[lower.tri(y,diag=TRUE)] <- x
+  y%*%t(y)
+}
+
+sets.of.regimes <- function (object, regimes) {
+  lapply(regimes,function(x)sort(unique(x)))
+}
+
+## Parameter estimates
+sqrt.alpha <- sqrt(ouwiefit$solution["alpha",1])
+sigma <- sqrt(ouwiefit$solution["sigma.sq",1])
+
+## From inside hansen.R hansen() function
+## Compute beta for the two-regime case
+nm <- deparse(substitute(regime1))[1]
+regimes <- list(regime1)
+names(regimes) <- nm
+regimes <- rep(regimes,1)
+regimes <- lapply(regimes,function(x)x[ouch.tree@nodes])
+beta <- regime.spec(ouch.tree,regimes)
+
+## From inside hansen.R ou.lik.fn() function
+alpha <- sym.par(sqrt.alpha)
+sigma <- sym.par(sigma)
+ev <- eigen(alpha,symmetric=TRUE)
+
+## Compute the weight matrix for the single regime and two-regime cases
+dyn.load("weight-matrix.so")
+ouch.W <- .Call("ouch_weights",object=ouch.tree,lambda=ev$values,S=ev$vectors,beta=beta)
+
+## Compute the covariance matrix, which does not depend on regime paintings
+dyn.load("covar-matrix.so")
+ouch.V <- .Call("ouch_covar",object=ouch.tree,lambda=ev$values,S=ev$vectors,sigma.sq=sigma)
+
+## Variance
+ouch.V[1,1]
+## Covariance between two tips separated at the root
+min(ouch.V)
+
+```
+
+The same calculation for the $\texttt{OUwie}$ method, on the other hand, reveals that it is using the original, uncorrected version.
+```{r}
+source("varcov.ou.R")
+source("weight.mat.R")
+
+data <- trait
+phy <- tree
+data<-data.frame(data[,2], data[,3], row.names=data[,1])
+data<-data[phy$tip.label,]
+n=max(phy$edge[,1])
+ntips=length(phy$tip.label)
+tot.states<-factor(c(phy$node.label,as.character(data[,1])))
+k<-length(levels(tot.states))
+int.states<-factor(phy$node.label)
+phy$node.label=as.numeric(int.states)
+tip.states<-factor(data[,1])
+data[,1]<-as.numeric(tip.states)
+
+root.state <- phy$node.label[1]
+int.state <- phy$node.label[-1]
+##New tree matrix to be used for subsetting regimes
+edges=cbind(c(1:(n-1)),phy$edge,nodeHeights(phy))
+edges[,4:5]<-edges[,4:5]/max(nodeHeights(phy))
+edges=edges[sort.list(edges[,3]),]
+mm<-c(data[,1],int.state)
+regime <- matrix(0,nrow=length(mm),ncol=length(unique(mm)))
+##Generates an indicator matrix from the regime vector
+for (i in 1:length(mm)) {
+    regime[i,mm[i]] <- 1
+}
+##Finishes the edges matrix
+edges=cbind(edges,regime)
+##Resort the edge matrix so that it looks like the original matrix order
+edges=edges[sort.list(edges[,1]),]
+x<-as.matrix(data[,2])
+index.mat<-matrix(0,2,k)
+np=2
+index<-matrix(TRUE,2,k)
+index.mat[1,1:k]<-1
+index.mat[2,1:k]<-2
+param.count<-np+k
+bool=TRUE
+
+## parameter estimates
+p <- unname(ouwiefit$solution[,1])
+Rate.mat <- matrix(1, 2, k)
+Rate.mat[] <- c(p, 1e-10)[index.mat]
+N<-length(x[,1])
+## covariance matrix does not depend on regime painting
+ouwie.V<-varcov.ou(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scaleHeight=TRUE)
+## but the weight matrix does
+ouwie.W<-weight.mat(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scaleHeight=TRUE, assume.station=TRUE)
+
+## Variance
+ouwie.V[1,1]
+## Covariance between two tips separated at the root
+min(ouwie.V)
+
+
 ```
