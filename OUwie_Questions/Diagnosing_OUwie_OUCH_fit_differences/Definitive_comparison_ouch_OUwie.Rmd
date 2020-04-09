@@ -12,19 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 In this document, I will try to fully describe, in a single place, all of the known differences between $\texttt{ouch}$ and $\texttt{OUwie}$, focusing especially on differences in how they compute the weight and covariance matrices, as those are key to the fitting procedures of each program.
 To pick a particular case, I will use the sample data contained in the 'tworegime' dataset that is part of $\texttt{OUwie}$.
 
-```{r}
-<<<<<<< HEAD
-library(OUwie, quietly=TRUE, warn.conflicts = FALSE)
-=======
-library(OUwie, quietly=TRUE, warn.conflicts=FALSE)
+```{r, echo=FALSE}
+library(OUwie, quietly=TRUE, warn.conflicts=FALSE, verbose=FALSE)
 library(ouch, quietly=TRUE, warn.conflicts=FALSE)
 library(phytools, quietly=TRUE, warn.conflicts=FALSE)
->>>>>>> 6bfdca14cca13cd5fc5aacd5f84c4ef96269a8c5
 data(tworegime)
 
 ```
 
-Some cursory examination of this dataset makes it clear it is a realistic phylogeny with 64 tips and 63 internal nodes (no polytomies), with a single regime switch occurring between the ancestral black regime and the red regime.
+A cursory examination of this dataset makes it clear it is a realistic phylogeny with 64 tips and 63 internal nodes (no polytomies), with a single regime switch occurring between the ancestral black regime and the red regime.
 
 ```{r regimes, fig.cap="Fig. 1. The 'tworegime' phylogeny and regime painting.", fig.height=10, fig.width=5, units='in', res=300, echo=FALSE}
 plot(tree)
@@ -39,10 +35,11 @@ with(trait, plot(as.factor(Reg), X, xlab='Regime', ylab="Trait"))
 
 I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the $\texttt{OUwie}$ package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by $\texttt{ouch}$ as possible, as $\texttt{ouch}$ scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. This produces estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$.
 ```{r OUwieFit}
+set.seed(10001)
 ouwiefit <- OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
 ouwiefit
 ```
-Here's the first sign of trouble between the two methods: if I ask $\texttt{ouch}$ to compute the likelihood of these $\texttt{OUwie}$ parameter estimates, the likelihoods are different. To do this, I first need to convert the tree from 'phylo' format to 'ouchtree' format and then 'paint' the tree with the regime painting. There is a little ambiguity about this painting, specifically on the regime for the branch descending from the root to the clade containing species t33 to t64. Thus I will compare the two different regime paintings, shown below.
+To fit an OU model to this data using $\texttt{ouch}$, I first need to convert the tree from 'phylo' format to 'ouchtree' format and then 'paint' the tree with the regime painting. There is a little ambiguity about this painting, specifically on the regime for the branch descending from the root to the clade containing species t33 to t64. Thus I will compare the two different regime paintings, shown below.
 ```{r, fig.cap="Fig. 3. One possible regime painting for the $\\texttt{ouch}$ version of the phylogenetic tree and regime painting.", fig.height=10, fig.width=5, units='in', res=300}
 ouch.tree <- ape2ouch(tree)
 regime1 <- paint(ouch.tree, subtree=c('1'=1,'32'=2), branch=c('1'=1))
@@ -74,7 +71,7 @@ rownames(fits) <- c("OUwie", "ouch1", "ouch2")
 fits
 ```
 
-Moreover, if you calculate the likelihood of the $\texttt{OUwie}$ parameter estimates using the $\texttt{ouch}$ methods, you get different likelihoods and different estimates of the selective optima.
+Moreover, if you calculate the likelihood of the $\texttt{OUwie}$ parameter estimates using the $\texttt{ouch}$ methods, you get different likelihoods and different estimates of the selective optima. (Note that I will work with the $\texttt{ouch}$ regime painting 'regime1' for this calculation.)
 ```{r, echo=TRUE}
 ## Likelihoods
 summary(hansen(ouch.trait, tree=ouch.tree, regimes=regime1, sqrt.alpha=sqrt(ouwiefit$solution["alpha",1]), sigma=sqrt(ouwiefit$solution["sigma.sq",1]), fit=FALSE))$loglik
@@ -91,17 +88,20 @@ $$
 V_{ij} = \frac{\sigma^2}{2\alpha} e^{-2\alpha(T-s_{ij})}\left(1-e^{-2\alpha s_{ij}}\right)
 \end{equation}
 $$
-Thus, the variance, given the $\texttt{OUwie}$ estimates of $\alpha=1.39$ and $\sigma^2=0.65$ and a tree depth of $T=1$, would be $V_{ii}=$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1]),3)`. This equation was based on the original $\texttt{ouch}$ formulation, where the root state was estimated. Since we instead assume that the root state is drawn from the stationary distribution, there is an additional variance term that has to be added to this calculation. As shown in Ho and Ane (2013), the covariance matrix terms become:
+Thus, the variance, given the $\texttt{OUwie}$ estimates of $\alpha=1.39$ and $\sigma^2=0.65$ and a tree depth of $T=1$, would be $V_{ii}=$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1])*(1-exp(-2*ouwiefit$solution["alpha",1])),3)`. This equation was based on the original $\texttt{ouch}$ formulation, where the root state was estimated. Since we instead assume that the root state is drawn from the stationary distribution, there is an additional variance term that has to be added to this calculation. As shown in Ho and Ane (2013), the covariance matrix terms become:
 $$
 \begin{equation}
 V_{ij} = \frac{\sigma^2}{2\alpha} e^{-2\alpha(T-s_{ij})}
 \end{equation}
 $$
-Using this formula, the variance is $V_{ii} = 0.235$. Note that because the values of the covariance matrix depends on the parameter estimates, this difference is not trivial, so it would seem important to make sure that the method of calculating the covariance matrix varies with the assumptions about how to treat the root state (that is, whether to estimate it, or to draw it from the stationary distribution). 
+Using this formula, the variance is $V_{ii} =$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1]),3)`. Note that because the values of the covariance matrix depends on the parameter estimates, this difference is not trivial, so it would seem important to make sure that the method of calculating the covariance matrix varies with the assumptions about how to treat the root state (that is, whether to estimate it, or to draw it from the stationary distribution). 
 
-To provide a second point of comparison, for two tips that diverge at the root, the covariance between them is zero in the original formulation (because $s_{ij}=0$, so $1-e^{-2\alpha s_{ij}}=0$), whereas in the Ho and Ane method, $V_{ij} = \sigma^2/2\alpha e^{-2\alpha} = 0.0145$. Note that this is exactly the difference between the variance measurements, and is the additional variance due to the fact that we are assuming that, until $T=0$, the lineage was evolving in the ancestral regime.
+To provide a second point of comparison, for two tips that diverge at the root, the covariance between them is zero in the original formulation (because $s_{ij}=0$, so $1-e^{-2\alpha s_{ij}}=0$), whereas in the Ho and Ane method, $V_{ij} = \frac{\sigma^2}{2\alpha} e^{-2\alpha} =$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1])*exp(-2*ouwiefit$solution["alpha",1]),3)`. Note that this is exactly the difference between the variance measurements, and is the additional variance due to the fact that we are assuming that, until $T=0$, the lineage was evolving in the ancestral regime. This is the comparison, I think, that illustrates the problem with using the original $\texttt{ouch}$ covariance matrix calculation: the covariance between two tips separated at the base of the tree should not be zero, because that ignores the shared evolutionary history that predates the root of the tree.
 
-Finally, we can compare two tips that are sister to one another (e.g., $t1$ and $t2$). These two tips separated at $t=0.9166974$. According to the original method, the covariance between $t1$ and $t2$ should be  
+```{r, echo=FALSE}
+sisTime <- ouch.tree@epochs[[64]][2]
+```
+Finally, we can compare two tips that are sister to one another (e.g., $t1$ and $t2$). These two tips separated at $t=$ `r signif(sisTime,3)`. According to the original method, the covariance between $t1$ and $t2$ should be $V_{ij}=$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1])*exp(-2*ouwiefit$solution["alpha",1]*(1-sisTime))*(1-exp(-2*ouwiefit$solution["alpha",1]*sisTime)),3)`, whereas according to the Ho and Ane method, the covariance should be $V_{ij}=$ `r signif(ouwiefit$solution["sigma.sq",1]/(2*ouwiefit$solution["alpha",1])*exp(-2*ouwiefit$solution["alpha",1]*(1-sisTime)),3)`.   
 
 By digging into the source code for both $\texttt{ouch}$ and $\texttt{OUwie}$, we can directly compare how the two methods calculate the covariance matrix terms. First, for $\texttt{ouch}$, we find that the variance and covariance match the expectation given by the Ho and Ane method. 
 
@@ -160,13 +160,17 @@ sqrt.alpha <- sqrt(ouwiefit$solution["alpha",1])
 sigma <- sqrt(ouwiefit$solution["sigma.sq",1])
 
 ## From inside hansen.R hansen() function
-## Compute beta for the two-regime case
-nm <- deparse(substitute(regime1))[1]
-regimes <- list(regime1)
-names(regimes) <- nm
-regimes <- rep(regimes,1)
-regimes <- lapply(regimes,function(x)x[ouch.tree@nodes])
-beta <- regime.spec(ouch.tree,regimes)
+## Calculate 'beta' for the two possible regime paintings
+for (i in 1:2) {
+  if(i==1) this.regime <- regime1
+  else this.regime <- regime2
+  nm <- deparse(substitute(this.regime))[1]
+  regimes <- list(this.regime)
+  names(regimes) <- nm
+  regimes <- rep(regimes,1)
+  regimes <- lapply(regimes,function(x)x[ouch.tree@nodes])
+  assign(paste0('beta',i), regime.spec(ouch.tree,regimes))
+}
 
 ## From inside hansen.R ou.lik.fn() function
 alpha <- sym.par(sqrt.alpha)
@@ -175,7 +179,8 @@ ev <- eigen(alpha,symmetric=TRUE)
 
 ## Compute the weight matrix for the single regime and two-regime cases
 dyn.load("weight-matrix.so")
-ouch.W <- .Call("ouch_weights",object=ouch.tree,lambda=ev$values,S=ev$vectors,beta=beta)
+ouch.W1 <- .Call("ouch_weights",object=ouch.tree,lambda=ev$values,S=ev$vectors,beta=beta1)
+ouch.W2 <- .Call("ouch_weights",object=ouch.tree,lambda=ev$values,S=ev$vectors,beta=beta2)
 
 ## Compute the covariance matrix, which does not depend on regime paintings
 dyn.load("covar-matrix.so")
@@ -184,11 +189,12 @@ ouch.V <- .Call("ouch_covar",object=ouch.tree,lambda=ev$values,S=ev$vectors,sigm
 ## Variance
 ouch.V[1,1]
 ## Covariance between two tips separated at the root
-min(ouch.V)
-
+ouch.V[1,64]
+## Covariance between t1 and t2
+ouch.V[63,64]
 ```
 
-The same calculation for the $\texttt{OUwie}$ method, on the other hand, reveals that it is using the original, uncorrected version.
+The same calculations for the $\texttt{OUwie}$ method, on the other hand, reveals that it is using the original, uncorrected version.
 ```{r}
 source("varcov.ou.R")
 source("weight.mat.R")
@@ -244,7 +250,268 @@ ouwie.W<-weight.mat(phy, edges, Rate.mat, root.state=1, simmap.tree=FALSE, scale
 ## Variance
 ouwie.V[1,1]
 ## Covariance between two tips separated at the root
-min(ouwie.V)
+ouwie.V[1,64]
+## Covariance between t1 and t2
+ouwie.V[1,2]
 
+```
+
+Not to be too pedantic, but you can see that the difference across every term of the the covariance matrix is equal to the difference observed above between the covariances of two tips separated at the root.
+```{r}
+## covariance between t1 and every other species
+## note, the tip order is reversed in the ouch covariance matrix
+ouwie.V[1,]-rev(ouch.V[64,])
+```
+
+The weight matrices are also quite different.
+```{r}
+## based on the Fig. 2 OUwie regime painting
+ouwie.W
+## based on the Fig. 3 ouch regime painting
+ouch.W1
+## based on the Fig. 4 ouch regime painting
+ouch.W2
+```
+
+From Butler and King (2004): "The history of the $i$th lineage consists of a number $\kappa(i)$ of sequential branch segments demarcated by epochs $0=t_i^0 < t_i^1 < t_i^2 < ... < t_i^{\kappa(i)} = T$." Further, they "assume that the selection regime, $\beta_i$, acting on lineage $i$ is constant with value $\beta_i^\gamma$ over the course of the $\gamma$th branch segment, that is, for $t_i^{\gamma-1} < t < t_i^\gamma$." Based on these assumptions, the expected trait value for any tip species $i$ is given by Eq. (A4) in Butler and King (2004): 
+$$
+E[X_i(T) | X_i(0)=\theta_0] = e^{-\alpha T}\theta_0+\sum_{\gamma=1}^{\kappa(i)}e^{-\alpha T}(e^{\alpha t_i^\gamma}-e^{\alpha t_i^{\gamma-1}})\beta_i^\gamma,
+$$
+where $\theta_0$ is the regime operating at the root (in this case, regime 1) and $\beta_i^\gamma = \sum_{k=1}^r \beta_{ik}^\gamma \theta_k$ gives the history of regimes experienced by the $i$th lineage, and $\beta_{ik}^\gamma$ is either 0 or 1, depending on whether the $\gamma$th branch is in the $k$the regime or not. Based on this, the formula for the weight matrix terms in Butler and King (2004) is:
+$$
+\begin{align}
+W_{i0} &= e^{-\alpha T}, \\
+W_{ik} &= e^{-\alpha T} \sum_{\gamma=1}^{\kappa(i)} \beta_{ik}^\gamma (e^{\alpha t_i^\gamma}-e^{\alpha t_i^{\gamma-1}}).
+\end{align}
+$$
+```{r, echo=FALSE}
+library(magrittr)
+## compute the switchpoints for the two different regime paintings
+sw1 <- (ouch.tree@epochs[[1]] %>% rev)[2]
+sw2 <- 0
+alpha <- ouwiefit$solution["alpha",1]
+sigma.sq <- ouwiefit$solution["sigma.sq",1]
+```
+In this simple two-regime case, $\kappa(i)=1$ for all of the tips that remain in regime 1 from the root to the tip, and $\kappa(i)=2$ for all of the tips that switch from regime 1 to regime 2 at some point. For $\texttt{ouch}$, the timing of the switch depends on which of the two possible regime paintings are assumed. For the painting shown in Fig. 3, the regime switch happens at $t_{sw}=$ `r sw1`, whereas for the painting shown in Fig. 4, the regime switch happens at $t_{sw}=0$. 
+
+For the tips that remain in regime 1 for all time, the expected trait value is $e^{-\alpha T} \theta_1 + e^{-\alpha T} (e^{\alpha T}-e^{\alpha 0}) \theta_1 = e^{-\alpha T} \theta_1 + (1 - e^{-\alpha T}) \theta_1 = \theta_1$, and the entry in the weight matrix for the first regime is $e^{-\alpha T} + (1 - e^{-\alpha T}) = 1$ and the entry in the weight matrix for the second regime is 0. For the tips that switch to regime 2, the expected trait value is $e^{-\alpha T} \theta_1 + e^{-\alpha T} (e^{\alpha t_{sw}}-e^{\alpha 0}) \theta_1 + e^{-\alpha T} (e^{\alpha T} - e^{\alpha t_{sw}}) \theta_2$, where $t_{sw}$ is the time where the switch happens. Then the weight on regime 1 would be $e^{-\alpha T} + e^{-\alpha T} (e^{\alpha t_{sw}}-e^{\alpha 0})$ and the weight on regime 2 would be $e^{-\alpha T} (e^{\alpha T} - e^{\alpha t_{sw}})$. 
+
+For the regime painting in Fig. 3, the weights are `r exp(-alpha)+exp(-alpha*1)*(exp(alpha*sw1)-exp(alpha*0))` (regime 1) and `r exp(-alpha*1)*(exp(alpha*1)-exp(alpha*sw1))` (regime 2). For the regime painting in Fig. 4, the weights are `r exp(-alpha) + exp(-alpha*1)*(exp(alpha*sw2)-exp(alpha*0))` (regime 1) and `r exp(-alpha*1)*(exp(alpha*1)-exp(alpha*sw2))` (regime 2). These match exactly with what $\texttt{ouch}$ calculates for the two regime paintings.
+```{r}
+## Fig. 3 regime painting weights for t1 (always in regime 1)
+ouch.W1[64,]
+## Fig. 3 reigme painting weights for t64 (switches from regime 1 to regime 2)
+ouch.W1[1,]
+## Fig. 4 regime painting weights for t1 (always in regime 1)
+ouch.W2[64,]
+## Fig. 4 reigme painting weights for t64 (switches from regime 1 to regime 2)
+ouch.W2[1,]
+```
+
+How is $\texttt{OUwie}$ computing the weights? I'm not sure. What is confusing is that, for tips that were entirely in regime 1, the weight for regime 2 is not zero, but is some non-zero value. That is the first point of confusion for me.
+```{r}
+ouwie.W[1,]
+
+weight.mat<-function(phy, edges, Rate.mat, root.state, simmap.tree=FALSE, scaleHeight=FALSE, assume.station=TRUE){
+
+	n=max(phy$edge[,1])
+	ntips=length(phy$tip.label)
+	if(is.null(root.state)) {
+		root.state<-which(edges[dim(edges)[1],]==1)-5
+		edges<-edges[-1*dim(edges)[1],]
+	}
+	if(simmap.tree==TRUE){
+		k=length(colnames(phy$mapped.edge))
+	}
+	if(simmap.tree==FALSE){
+		mm<-dim(edges)
+		k<-length(6:mm[2])
+	}
+	pp <- prop.part(phy)
+	edges = edges
+	oldregime=root.state
+	nodevar=rep(0,max(edges[,3]))
+	alpha=Rate.mat[1,]
+	if(assume.station==TRUE){
+		W<-matrix(0,ntips,k)
+		for(j in 1:k){
+			n.cov=matrix(0, n, 1)
+			#Weights for each species per regime
+			for(i in 1:length(edges[,1])){
+				anc = edges[i, 2]
+				oldtime=edges[i,4]
+				newtime=edges[i,5]
+				if(simmap.tree==TRUE){
+					if(scaleHeight==TRUE){
+						currentmap<-phy$maps[[i]]/max(nodeHeights(phy))
+					}
+					else{
+						currentmap<-phy$maps[[i]]
+					}
+				}
+				if(simmap.tree==TRUE){
+					nodevar[i]=0
+					for (regimeindex in 1:length(currentmap)){
+						regimeduration <- currentmap[regimeindex]
+						newtime <- oldtime + regimeduration
+						regimenumber <- which(colnames(phy$mapped.edge)==names(currentmap)[regimeindex])
+						if (regimenumber == j){
+							nodevar[i] <- exp(-alpha[root.state])*(exp(alpha[regimenumber]*newtime)-exp(alpha[regimenumber]*oldtime))
+						}
+						else{
+							nodevar[i]= nodevar[i] + 0
+						}
+						oldtime <- newtime
+					}
+				}
+				if(simmap.tree==FALSE){
+					if(anc%in%edges[,3]){
+						start=which(edges[,3]==anc)
+						oldregime=which(edges[start,6:(k+5)]==1)
+					}
+					else{
+						#For the root:
+						oldregime=oldregime
+					}
+					newregime=which(edges[i,6:(k+5)]==1)
+					if(oldregime==newregime){
+						if(newregime==j){
+							nodevar[i]=exp(-alpha[root.state])*(exp(alpha[oldregime]*newtime)-exp(alpha[oldregime]*oldtime))
+						}
+						else{
+							nodevar[i]=0
+						}
+					}
+					else{
+						halftime=newtime-((newtime-oldtime)/2)
+						epoch1=exp(-alpha[root.state])*(exp(alpha[oldregime]*halftime)-exp(alpha[oldregime]*oldtime))
+						oldtime=halftime
+						newtime=newtime
+						epoch2=exp(-alpha[root.state])*(exp(alpha[newregime]*newtime)-exp(alpha[newregime]*oldtime))
+						if(oldregime==j){
+							nodevar[i]=epoch1
+						}
+						if(newregime==j){
+							nodevar[i]=epoch2
+						}
+						if(!newregime==j && !oldregime==j){
+							nodevar[i] = 0
+						}
+					}
+				}
+				n.cov[edges[i,3],]=nodevar[i]
+			}
+			w.piece<-mat.gen(phy,n.cov,pp)
+			W[1:(ntips),j]<-diag(w.piece)
+		}
+	}
+
+	if(assume.station==FALSE){
+		W<-matrix(0,ntips,k+1)
+		for(j in 1:k){
+			n.cov=matrix(0, n, 1)
+			#Weight calculated for the root
+			W[,1]<-exp(-alpha[1]*1)
+			#Weights for each species per regime
+			for(i in 1:length(edges[,1])){
+				anc = edges[i, 2]
+				oldtime=edges[i,4]
+				newtime=edges[i,5]
+				if(simmap.tree==TRUE){
+					if(scaleHeight==TRUE){
+						currentmap<-phy$maps[[i]]/max(nodeHeights(phy))
+					}
+					else{
+						currentmap<-phy$maps[[i]]
+					}
+				}
+				if(simmap.tree==TRUE){
+					nodevar[i]=0
+					for (regimeindex in 1:length(currentmap)){
+						regimeduration <- currentmap[regimeindex]
+						newtime <- oldtime + regimeduration
+						regimenumber <- which(colnames(phy$mapped.edge)==names(currentmap)[regimeindex])
+						if (regimenumber == j){
+							nodevar[i] <- exp(-alpha[root.state])*(exp(alpha[regimenumber]*newtime)-exp(alpha[regimenumber]*oldtime))
+						}
+						else{
+							nodevar[i]= nodevar[i] + 0
+						}
+						oldtime <- newtime
+					}
+				}
+				if(simmap.tree==FALSE){
+					if(anc%in%edges[,3]){
+						start=which(edges[,3]==anc)
+						oldregime=which(edges[start,6:(k+5)]==1)
+					}
+					else{
+						#For the root:
+						oldregime=oldregime
+					}
+					newregime=which(edges[i,6:(k+5)]==1)
+					if(oldregime==newregime){
+						if(newregime==j){
+							nodevar[i]=exp(-alpha[root.state])*(exp(alpha[oldregime]*newtime)-exp(alpha[oldregime]*oldtime))
+						}
+						else{
+							nodevar[i]=0
+						}
+					}
+					else{
+						halftime=newtime-((newtime-oldtime)/2)
+						epoch1=exp(-alpha[root.state])*(exp(alpha[oldregime]*halftime)-exp(alpha[oldregime]*oldtime))
+						oldtime=halftime
+						newtime=newtime
+						epoch2=exp(-alpha[root.state])*(exp(alpha[newregime]*newtime)-exp(alpha[newregime]*oldtime))
+						if(oldregime==j){
+							nodevar[i]=epoch1
+						}
+						if(newregime==j){
+							nodevar[i]=epoch2
+						}
+						if(!newregime==j & !oldregime==j){
+							nodevar[i]=0
+						}
+					}
+				}
+				n.cov[edges[i,3]]=nodevar[i]
+			}
+			w.piece<-mat.gen(phy,n.cov,pp)
+			W[1:(ntips),j+1]<-diag(w.piece)
+		}
+
+	}
+	#Restandardizes W so that the rows sum to 1 -- Generalized. Will reduce to the simpler model if assuming 1 alpha parameter
+	W<-W/rowSums(W)
+	W
+}
+
+##Matrix generating function taken from vcv.phylo in ape:
+mat.gen<-function(phy,piece.wise,pp){
+	phy <- reorder(phy, "pruningwise")
+    n <- length(phy$tip.label)
+    anc <- phy$edge[,1]
+    des <- phy$edge[,2]
+    ep <- piece.wise[,1]
+	comp <- numeric(n + phy$Nnode)
+    mat <- matrix(0, n, n)
+
+	for (i in length(anc):1) {
+        focal <- comp[anc[i]]
+        comp[des[i]] <- focal + ep[des[i]]
+        j <- i - 1L
+        while (anc[j] == anc[i] && j > 0) {
+            left <- if (des[j] > n) pp[[des[j] - n]] else des[j]
+            right <- if (des[i] > n) pp[[des[i] - n]] else des[i]
+            mat[left, right] <- mat[right, left] <- focal
+            j <- j - 1L
+        }
+    }
+    diag.elts <- 1 + 0:(n - 1)*(n + 1)
+    mat[diag.elts] <- comp[1:n]
+
+	mat
+}
 
 ```

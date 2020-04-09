@@ -234,16 +234,13 @@ OUwie<-function(phy,data, model=c("BM1","BMS","OU1","OUM","OUMV","OUMA","OUMVA")
 	Rate.mat <- matrix(1, 2, k)
 	#Likelihood function for estimating model parameters
 	dev<-function(p, index.mat, edges, mserr){
-            ## Hacked this to force alpha=1, sigma.sq=1
-            ## Note that it will not optimize any more, but it will allow me to make the comparison I want to make.
-            p <- c(1,1)
-
+            
 		Rate.mat[] <- c(p, 1e-10)[index.mat]
 		N<-length(x[,1])
 		V<-varcov.ou(phy, edges, Rate.mat, root.state=root.state, simmap.tree=simmap.tree, scaleHeight=scaleHeight)
 		W<-weight.mat(phy, edges, Rate.mat, root.state=root.state, simmap.tree=simmap.tree, scaleHeight=scaleHeight, assume.station=bool)
-                print("root state")
-                print(root.state)
+                print("Rate.mat")
+                print(Rate.mat)
                 print("weight matrix")
                 print(W)
 		if (any(is.nan(diag(V))) || any(is.infinite(diag(V)))) return(1000000)
