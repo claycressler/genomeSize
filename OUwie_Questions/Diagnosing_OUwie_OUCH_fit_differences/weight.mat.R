@@ -200,6 +200,7 @@ weight.mat<-function(phy, edges, Rate.mat, root.state, simmap.tree=FALSE, root.a
         }
         W[,1] = diag(W.piece.root)
     }
+    this.W <<- W
     #Restandardizes W so that the rows sum to 1 -- Generalized. Will reduce to the simpler model if assuming 1 alpha parameter
     W <- W/rowSums(W)
     W

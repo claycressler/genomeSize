@@ -365,9 +365,7 @@ assume.station <- TRUE
 
 ############################################################################################################
 ############################################################################################################
-##                              ANNOTATED weight.mat.R                                                    ##
-##                Added a 'print' statement to print the state of 'oldregime'                             ##
-##               every time the loop calculates the weights for a new regime                              ##
+##                              ORIGINAL weight.mat.R                                                     ##
 ############################################################################################################
 ############################################################################################################
 
@@ -471,20 +469,129 @@ if(assume.station==TRUE){
 	}
 }
 
-## confirming that this matches the weight matrix calculated above
-## (if I rescale so that weights sum to 1)
+## Note that the weight matrix terms are no longer < 1 AND the weights for regime 2 are not identical for every tip
+print(W)
+
+## But if I rescale so that weights sum to 1, this matches the weight matrix calculation above
 all(W/rowSums(W)==ouwie.W)
 
 
 ############################################################################################################
 ############################################################################################################
 ##                              MODIFIED weight.mat.R                                                     ##
-##                     This version calculates weights correctly                                          ##
-##                       I think(?) this should work in general                                           ##
+##                                                                ##
 ############################################################################################################
 ############################################################################################################
 
 ## Everything below here is taken directly from the weight.mat() function
+n=max(phy$edge[,1]) ## number of internal branches
+ntips=length(phy$tip.label) ## number of tips
+mm<-dim(edges)
+k<-length(6:mm[2]) ## number of regimes
+
+pp <- prop.part(phy)
+## Assign the variable 'oldregime' to the regime of the root
+oldregime=root.state
+## not sure what this is doing yet, except that it is a vector with length equal to the number of nodes	
+nodevar1=rep(0,max(edges[,3]))
+nodevar2=rep(0,max(edges[,3]))
+## assign the variable 'alpha' to a vector of alpha values for the root and each regime
+alpha=Rate.mat[1,]
+if(assume.station==TRUE){
+  #Weights for each species per regime
+  W<-matrix(0,ntips,k)
+  ## cycle through each regime
+	for(j in 1:k){
+	  ## create a matrix with 1 column and a number of rows equal to the number of nodes
+	  n.cov1=matrix(0, n, 1)
+    n.cov2=matrix(0, n, 1)
+	  ## cycle through every edge
+	  for(i in 1:length(edges[,1])){
+	    ## identify the ancestral node of this edge
+			anc = edges[i, 2]
+			## identify the beginning and ending times for this branch
+			oldtime=edges[i,4]
+			newtime=edges[i,5]
+			## If this is true, then the i^th branch does not go back to the root (because the root is not a descendent of any other node),
+			## 5hen set the variable 'start' to be the ancestor of this branch in the phylogeny and set oldregime to be its regime
+			if(anc%in%edges[,3]){
+			  start=which(edges[,3]==anc)
+			  oldregime=which(edges[start,6:(k+5)]==1)
+			}
+			else{
+			  #For the root:
+			  oldregime=root.state
+			}
+			## What regime does this branch end in?
+			newregime=which(edges[i,6:(k+5)]==1)
+			## if the regime hasn't changed
+			if(oldregime==newregime){
+			  ## and if the regime is the "focal" regime j
+			  if(oldregime == j){
+			    ## then calculate the weight for this regime on this branch
+			    nodevar1[i] <- exp(-alpha[oldregime]*(newtime-oldtime))
+			    nodevar2[i] <- exp(alpha[oldregime]*newtime)-exp(alpha[oldregime]*oldtime)
+			  }
+			  ## if the regime is not the 'focal' regime 
+			  else{
+			    ## then the weight is 0
+			    nodevar1[i] <- 0
+			    nodevar2[i] <- 0
+			  }
+			}
+			## if the regime changes from the ancestor to the descendent
+			else{
+			  ## instead of assuming that the regime changes halfway from the ancestor to the descendent node
+			  ## assume that it changes at newtime (this should make it more like regime1)
+			  ## then assume that the regime changes halfway from the ancestor to the descendent node
+			  halftime=newtime-((newtime-oldtime)/2)
+			  ## the weight for the oldregime	
+			  epoch1a=exp(-alpha[oldregime]*(halftime-oldtime))
+			  epoch1b=exp(alpha[oldregime]*halftime)-exp(alpha[oldregime]*oldtime)
+			  ## reset oldtime to be halftime
+			  oldtime=halftime
+			  ## the weight for the newregime
+			  epoch2a=exp(-alpha[newregime]*(newtime-oldtime))
+			  epoch2b=exp(alpha[newregime]*newtime)-exp(alpha[newregime]*oldtime)
+			  ## if the oldregime is the 'focal' regime, then set the weight to be the oldregime weight
+			  if(oldregime==j){
+			    nodevar1[i]=epoch1a
+			    nodevar2[i]=epoch1b
+			  }
+			  ## if the newregime is the 'focal' regime, then set the weight to be the newregime weight
+			  if(newregime==j){
+			    nodevar1[i]=epoch2a
+			    nodevar2[i]=epoch2b
+			  }
+			  ## if the 'focal' regime is neither oldregime or newregime, then the weight is 0 (only possible if there are more than two regimes)
+			  if(!newregime==j && !oldregime==j){
+			    nodevar1[i] = 0
+			    nodevar2[i] = 0
+			  }
+			}
+			# what you end up with at the end of one run of the for loop are the weights of the k^th regime on each branch, based on whether the 'younger' node on that branch is in the regime or not
+			## assign this nodevar value to the descendent node in n.cov
+			n.cov1[edges[i,3],] = nodevar1[i]
+			n.cov2[edges[i,3],] = nodevar2[i]
+	  }
+    ## taken from vcv.phylo in the ape package
+	  w.piece1 <- mat.gen(phy, n.cov1, pp)
+    w.piece2 <- mat.gen(phy, n.cov2, pp)
+    w.piece <- w.piece1 * w.piece2
+    ## assign the weights for the focal regime to W
+	  W[1:(ntips),j] <- diag(w.piece)
+	}
+}
+
+## Here was the fix I suggested before
+W[,root.state] <- W[,root.state]+exp(-alpha[root.state])
+
+## But you can see that it no longer works
+all(round(ouch.W1[64:1,],6)==round(W,6))
+
+#################################################################################################
+#####        EVERYTHING BELOW HERE WAS USING AN OUTDATED VERSION OF weight.mat.R          #######
+#################################################################################################
 n=max(phy$edge[,1]) ## number of internal branches
 ntips=length(phy$tip.label) ## number of tips
 pp <- prop.part(phy)
@@ -580,8 +687,6 @@ if(assume.station==TRUE){
 ## Easiest way to fix everything is simply to add the weight to the ancestral regime
 W3[,root.state] <- W3[,root.state]+exp(-alpha[root.state])
 
-## with the current set of edits, W3 is identical to ouch.W1
-all(round(ouch.W1[64:1,],6)==round(W3,6))
 
 
 
