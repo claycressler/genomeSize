@@ -1,0 +1,30 @@
+---
+title: "Phylogenetic Analysis of Salamander Genome Size"
+author: "Clay Cressler"
+date: "02/06/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is an updated version of the analyses that were initially carried out several years ago. 
+We had wanted to use $\texttt{Ouwie}$ to do these analyses but previously, there were undiagnosed issues with its fitting algorithm.
+As such, we ended up using $\texttt{ouch}$ for all analyses, which prevented us from ever testing models with multiple $\alpha$ or $\sigma^2$ parameters.
+However, I spent time working through these issues in Spring 2020 and am now satisfied that $\texttt{ouch}$ and $\texttt{OUwie}$ produce identical results, at least once you account for the differences in how $\texttt{OUwie}$ handles regime paintings, which is by placing regime switches halfway along branches instead of at nodes, which is the default in $\texttt{ouch}$.
+This distinction won't really have much of an effect on the parameter estimates unless the branch along which the regime switch occurs is very long, so this is something to pay attention to, but probably not to worry much about.
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
