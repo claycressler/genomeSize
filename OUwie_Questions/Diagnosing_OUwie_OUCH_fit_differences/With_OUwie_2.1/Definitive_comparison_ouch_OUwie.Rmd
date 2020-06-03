@@ -8,13 +8,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, echo=FALSE}
 library(ouch, quietly=TRUE)
-library(phytools, quietly=TRUE)
-library(paleotree)
-library(corpcor)
-library(nloptr)
-library(igraph,quietly=TRUE)
-load("tworegime.rda")
-
+library(OUwie, quietly=TRUE)
+data(tworegime)
 ```
 ### A updated comparison of $\texttt{ouch}$ and $\texttt{OUwie}$ using 'data(tworegime)'
 
@@ -22,21 +17,21 @@ In May 2020, Jeremy Beaulieu updated $\texttt{OUwie}$ in response to the problem
 Here, I will repeat the analyses that revealed the problems to determine whether the fixes in $\texttt{OUwie}$ version 2.1 actually address all of those problems, focusing especially on differences in how they compute the weight and covariance matrices, as those are key to the fitting procedures of each program.
 As before, I will use the sample data contained in the 'tworegime' dataset that is part of $\texttt{OUwie}$.
 
-I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the $\texttt{OUwie}$ package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by $\texttt{ouch}$ as possible, as $\texttt{ouch}$ scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. This produces estimates of $\alpha=1.59$, $\sigma^2=0.69$, $\theta_1=1.68$, and $\theta_2=0.52$ (compared to the previous version's estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$). 
+I will fit this tree and phenotypic data to an Ornstein-Uhlenbeck model with a single value for $\alpha$ and $\sigma$ and separate optima for the two regimes using 'model="OUM"' in a call to the function OUwie() in the $\texttt{OUwie}$ package. Note that I am specifiying the options 'scaleHeight=TRUE' and 'root.station=TRUE' to make the fitting procedure as close to the one used by $\texttt{ouch}$ as possible, as $\texttt{ouch}$ scales the tree height to be equal to 1 and does not estimate the root state $\theta_0$ but instead draws it from the stationary distribution of the OU process. 
+
+Additionally, it used to be the case that $\texttt{OUwie}$ assumed that regime switches occur halfway along branches. 
+However, the new version of $\texttt{OUwie}$ has an option to the OUwie() function for setting the variable 'shift.point'.
+I will play with this value to figure out how to make the $\texttt{OUwie}$ regime painting identical to the $\texttt{ouch}$ regime painting.
+
+Fitting the data with $\texttt{OUwie}$ and with 'shift.point=0' produces estimates of $\alpha=1.59$, $\sigma^2=0.69$, $\theta_1=1.68$, and $\theta_2=0.39$ (compared to the previous version's estimates of $\alpha=1.39$, $\sigma^2=0.65$, $\theta_1=1.68$, and $\theta_2=0.81$). 
+
 There is also a new warning that uses results from Ho and Ane to determine whether the optima are identifiable or not: if the regimes form connected subtrees or not (that is, if you could cut the tree in one place and completely separate the two regimes from one another, then the regime optima are not identifiable).
 The warning does not prevent $\texttt{OUwie}$ from returning a result, it just warns.
+
 ```{r OUwieFit}
-set.seed(10001)
-source("OUwie/R/OUwie.R")
-source("OUwie/R/varcov.ou.R")
-source("OUwie/R/weight.mat.R")
-source("OUwie/R/check.identify.R")
-ouwiefit <- OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
+ouwiefit <- OUwie(tree, trait, model="OUM", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE, shift.point=0)
 ouwiefit
 ```
-To fit an OU model to this data using $\texttt{ouch}$, I first need to convert the tree from 'phylo' format to 'ouchtree' format and then 'paint' the tree with the regime painting. 
-Based on having done this before, I know that $\texttt{OUwie}$ paints the trees slightly differently, in that it assumes that regime switches occur halfway along branches. 
-In order to accomodate this in $\texttt{ouch}$, I need to actually add a node to the tree that is the switchpoint.
 
 ```{r, fig.cap="Fig. 3. One possible regime painting for the $\\texttt{ouch}$ version of the phylogenetic tree and regime painting.", fig.height=10, fig.width=5, units='in', res=300}
 ouch.tree <- ape2ouch(tree)
@@ -45,12 +40,7 @@ tr$nodes <- as.character(tr$nodes)
 tr$labels <- as.character(tr$labels)
 tr$ancestors <- as.character(tr$ancestors)
 rownames(tr) <- tr$nodes
-## add in another node whose ancestor is the root, and whose descendent is node 32
-tr <- rbind(tr, c("128","1",as.numeric(tr[32,3])/2,"2"))
-tr[32,2] <- "128"
-tr[,3] <- as.numeric(tr[,3])
-ouch.tree <- with(tr,ouchtree(nodes=nodes,ancestors=ancestors,times=times,labels=labels))
-regime1 <- paint(ouch.tree, subtree=c('1'=1,'128'=2), branch=c('1'=1))
+regime1 <- paint(ouch.tree, subtree=c('1'=1,'32'=2), branch=c('1'=1))
 plot(ouch.tree, regimes=regime1)
 ```
 

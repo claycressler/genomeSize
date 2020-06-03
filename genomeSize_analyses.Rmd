@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 This is an updated version of the analyses that were initially carried out several years ago. 
@@ -15,8 +15,158 @@ As such, we ended up using $\texttt{ouch}$ for all analyses, which prevented us 
 However, I spent time working through these issues in Spring 2020 and am now satisfied that $\texttt{ouch}$ and $\texttt{OUwie}$ produce identical results, at least once you account for the differences in how $\texttt{OUwie}$ handles regime paintings, which is by placing regime switches halfway along branches instead of at nodes, which is the default in $\texttt{ouch}$.
 This distinction won't really have much of an effect on the parameter estimates unless the branch along which the regime switch occurs is very long, so this is something to pay attention to, but probably not to worry much about.
 
-```{r cars}
-summary(cars)
+Nevertheless, I will fit the models using both $\texttt{OUwie}$ and $\texttt{ouch}$ to confirm they are giving similar results when they should. 
+
+First up is a simple comparison of Brownian motion fits:
+
+```{r, echo=FALSE}
+library(ape, quietly=TRUE)
+library(ouch, quietly=TRUE)
+library(OUwie, quietly=TRUE)
+library(tidyverse)
+
+tree <- read.nexus("av_ultra_fulldataset.nex")
+tree_metamorphosis <- tree_mpd <- tree_mpdMpleth <- tree
+## Load the hypotheses
+nodedata <- read.csv('ouwie_nodelabels.csv')
+nodedata <- nodedata[,c('node','metamorphosis','mpd','mpdMpleth')]
+## metamorphosis has two regimes: M, x
+## mpd has three regimes: D, M, P
+## mpdMpleth has four regimes: D, M, Mpleth, P
+## Node Colors for plots
+nodecol <- nodedata
+nodecol[-1] <- sapply(nodecol[-1], as.character)
+nodecol[nodecol=="x"] <- "brown"
+nodecol[nodecol=="M"] <- "red"
+nodecol[nodecol=="D"] <- "black"
+nodecol[nodecol=="P"] <- "dodgerblue1"
+nodecol[nodecol=="Mpleth"] <- "purple"
+## code Regime names as numbers for the OUwie algorithm
+nn <- nodedata
+nn[-1] <- sapply(nn[-1], as.character)
+nn[nn=="D"] <- 1
+nn[nn=="M"] <- 2
+nn[nn=="Mpleth"] <- 3
+nn[nn=="P"] <- 4
+nn[nn=="x"] <- 5
+## Add node labels to trees
+tree_metamorphosis$node.label <- nn$metamorphosis
+tree_mpd$node.label <- nn$mpd
+tree_mpdMpleth$node.label <- nn$mpdMpleth
+## Tip data
+dat <- read.csv("tree1.dat.csv")
+dat$genomesize <- log(dat$genomesize)
+tdat <- dat[!is.na(dat$genomesize),]  # tip data
+ndat <- dat[is.na(dat$genomesize),]   # node data
+## reorder tdat to match order of tip labels in phylo tree
+oo <- sapply(tree$tip.label, function(x) grep(x, tdat$labels))
+tipdat <- tdat[oo,]
+tipdat <- tipdat[c("labels", "metamorphosis", "mpd", "mpdMpleth", "genomesize")]
+## Tip Colors for plots
+tipcol <- tipdat
+tipcol[,1:(ncol(tipdat)-1)] <- sapply(tipcol[,1:(ncol(tipdat)-1)], as.character)
+tipcol[tipcol=="x"] <- "brown"
+tipcol[tipcol=="M"] <- "red"
+tipcol[tipcol=="D"] <- "black"
+tipcol[tipcol=="P"] <- "dodgerblue1"
+tipcol[tipcol=="Mpleth"] <- "purple"
+## code Regime names as numbers for the OUwie algorithm
+tt <- tipdat
+tt[,1:(ncol(tipdat)-1)] <- sapply(tt[,1:(ncol(tipdat)-1)], as.character)
+tt[tt=="D"] <- 1
+tt[tt=="M"] <- 2
+tt[tt=="Mpleth"] <- 3
+tt[tt=="P"] <- 4
+tt[tt=="x"] <- 5
+
+### input dataframes - one for each hypothesis
+data.metamorphosis <- tt[c("labels", "metamorphosis", "genomesize")]
+data.mpd <- tt[c("labels", "mpd", "genomesize")]
+data.mpdMpleth <- tt[c("labels", "mpdMpleth", "genomesize")]
+
+
+##############################################################
+## OUCH setup
+##############################################################
+dat1 <- read.csv("tree1.dat.csv")
+tree1 <- read.nexus("av_ultra_fulldataset.nex")
+tree <- ape2ouch(tree1)
+dat <- dat1
+rownames(dat) <- dat$nodes
+regimes <- dat[c("metamorphosis", "mpd", "mpdMpleth","OU1","fivereg")]
+gsz <- log(dat['genomesize'])
+```
+
+You can see that the Brownian motion model fits are almost identical:
+
+```{r brownian_motion, echo=TRUE}
+## Single-rate BM (this is hypothesis-independent)
+bm.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE)
+bm.ouch <- brown(gsz, tree)
+
+summary(bm.ouch)$sigma.squared %>% as.numeric
+bm.ouwie$solution["sigma.sq",]
+
+summary(bm.ouch)$theta %>% as.numeric
+bm.ouwie$theta[1]
+
+```
+```{r mpdMpleth, fig.height=6, fig.width=6, fig.cap="The mpdMpleth regime painting"}
+plot(tree_mpdMpleth)
+nodelabels(pch=21, bg=tree_mpdMpleth$node.label)
+
+
+```
+Now let's fit a multiple-optima Ornstein-Uhlenbeck model to the mpdMpleth regime painting using both $\texttt{OUwie}$ and $\texttt{ouch}$, shown in Fig. 
+From this, you can see that the $\sigma^2$ and $\alpha$ estimates are quite similar, but the estimates of the optima differ wildly.
+
+```{r OU, echo=TRUE}
+
+mpdMpleth.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=TRUE)
+mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
+
+## Compare sigma.sq estimates
+summary(mpdMpleth.ouch)$sigma.squared %>% as.numeric
+mpdMpleth.ouwie$solution["sigma.sq",1]
+
+## Compare alpha estimates
+summary(mpdMpleth.ouch)$alpha %>% as.numeric
+mpdMpleth.ouwie$solution["alpha",1]
+
+## Compare optima estimates
+summary(mpdMpleth.ouch)$optima$genomesize
+mpdMpleth.ouwie$theta[,1]
+
+```
+
+The question is whether those differences are due to how $\texttt{OUwie}$ handles regime paintings (putting them halfway along the branches). 
+The easiest way to check is by hacking $\texttt{OUwie}$ itself.
+
+```{r}
+
+mpd.ouwie <- OUwie(tree_mpd,data.mpd,model=c("OUM"),root.station=TRUE)
+meta.ouwie <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=TRUE)
+mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
+meta.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
+
+
+## Multiple-rate BM
+mpdMpleth.BMS <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BMS"),root.station=TRUE)
+mpd.BMS <- OUwie(tree_mpd,data.mpd,model=c("BMS"),root.station=TRUE)
+meta.BMS <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("BMS"),root.station=TRUE)
+
+
+
+## Fit hansen model to the data
+bm.ouch <- brown(gsz, tree)
+mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
+mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
+meta.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
+ou1.ouch <- hansen(gsz, tree, regimes['OU1'], sqrt.alpha=1, sigma=1)
+
+
+
+
 ```
 
 ## Including Plots
