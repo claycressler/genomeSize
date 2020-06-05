@@ -12,12 +12,8 @@ knitr::opts_chunk$set(echo = FALSE)
 This is an updated version of the analyses that were initially carried out several years ago. 
 We had wanted to use $\texttt{Ouwie}$ to do these analyses but previously, there were undiagnosed issues with its fitting algorithm.
 As such, we ended up using $\texttt{ouch}$ for all analyses, which prevented us from ever testing models with multiple $\alpha$ or $\sigma^2$ parameters.
-However, I spent time working through these issues in Spring 2020 and am now satisfied that $\texttt{ouch}$ and $\texttt{OUwie}$ produce identical results, at least once you account for the differences in how $\texttt{OUwie}$ handles regime paintings, which is by placing regime switches halfway along branches instead of at nodes, which is the default in $\texttt{ouch}$.
-This distinction won't really have much of an effect on the parameter estimates unless the branch along which the regime switch occurs is very long, so this is something to pay attention to, but probably not to worry much about.
-
+However, I spent time working through these issues in Spring 2020 and am now satisfied that $\texttt{ouch}$ and $\texttt{OUwie}$ produce identical results, at least once you specify a value for 'shift.point' to make the way that $\texttt{OUwie}$ handles regimes identical to $\texttt{ouch}$.
 Nevertheless, I will fit the models using both $\texttt{OUwie}$ and $\texttt{ouch}$ to confirm they are giving similar results when they should. 
-
-First up is a simple comparison of Brownian motion fits:
 
 ```{r, echo=FALSE}
 library(ape, quietly=TRUE)
@@ -97,11 +93,11 @@ regimes <- dat[c("metamorphosis", "mpd", "mpdMpleth","OU1","fivereg")]
 gsz <- log(dat['genomesize'])
 ```
 
-You can see that the Brownian motion model fits are almost identical:
+First up is a simple comparison of Brownian motion fits, which you can see are almost identical. 
 
-```{r brownian_motion, echo=TRUE}
+```{r, echo=TRUE}
 ## Single-rate BM (this is hypothesis-independent)
-bm.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE)
+bm.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE,quiet=TRUE)
 bm.ouch <- brown(gsz, tree)
 
 summary(bm.ouch)$sigma.squared %>% as.numeric
@@ -111,18 +107,18 @@ summary(bm.ouch)$theta %>% as.numeric
 bm.ouwie$theta[1]
 
 ```
-```{r mpdMpleth, fig.height=6, fig.width=6, fig.cap="The mpdMpleth regime painting"}
+```{r fig:mpdMpleth, fig.height=6, fig.width=6, fig.cap="The mpdMpleth regime painting"}
 plot(tree_mpdMpleth)
 nodelabels(pch=21, bg=tree_mpdMpleth$node.label)
 
-
 ```
-Now let's fit a multiple-optima Ornstein-Uhlenbeck model to the mpdMpleth regime painting using both $\texttt{OUwie}$ and $\texttt{ouch}$, shown in Fig. 
-From this, you can see that the $\sigma^2$ and $\alpha$ estimates are quite similar, but the estimates of the optima differ wildly.
+Now let's fit a multiple-optima Ornstein-Uhlenbeck model to the mpdMpleth regime painting using both $\texttt{OUwie}$ and $\texttt{ouch}$, shown in Fig. \@ref(fig:mpdMpleth).
+From this, you can see that all of the parameter estimates are quite similar, and the likelihood, calculated by $\texttt{ouch}$ using the $\texttt{OUwie}$ parameter estimates, is identical to the fourth decimal place. 
+Obviously I wish they were completely identical, but I'll take it.
 
-```{r OU, echo=TRUE}
-
-mpdMpleth.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=TRUE)
+```{r, echo=TRUE}
+## Fit the mpdMpleth hypothesis
+mpdMpleth.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
 
 ## Compare sigma.sq estimates
@@ -137,44 +133,145 @@ mpdMpleth.ouwie$solution["alpha",1]
 summary(mpdMpleth.ouch)$optima$genomesize
 mpdMpleth.ouwie$theta[,1]
 
+## Compare the likelihoods
+summary(hansen(gsz, tree=tree, regimes=regimes['mpdMpleth'], sqrt.alpha=sqrt(mpdMpleth.ouwie$solution["alpha",1]), sigma=sqrt(mpdMpleth.ouwie$solution["sigma.sq",1]), fit=FALSE))$loglik
+mpdMpleth.ouwie$loglik
+
+
 ```
 
-The question is whether those differences are due to how $\texttt{OUwie}$ handles regime paintings (putting them halfway along the branches). 
-The easiest way to check is by hacking $\texttt{OUwie}$ itself.
+I will repeat this analysis with both methods for the other regime paintings, starting with the mpd painting shown in Fig. \@ref(fig:mpd).
+And again, we see really strong evidence that the two methods are nearly identical.
+
+```{r fig:mpd, fig.height=6, fig.width=6, fig.cap="The mpd regime painting"}
+plot(tree_mpd)
+nodelabels(pch=21, bg=tree_mpd$node.label)
+
+```
+
+
+```{r, echo=TRUE}
+## Fit the mpd hypothesis
+mpd.ouwie <- OUwie(tree_mpd,data.mpd,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
+
+## Compare sigma.sq estimates
+summary(mpd.ouch)$sigma.squared %>% as.numeric
+mpd.ouwie$solution["sigma.sq",1]
+
+## Compare alpha estimates
+summary(mpd.ouch)$alpha %>% as.numeric
+mpd.ouwie$solution["alpha",1]
+
+## Compare optima estimates
+summary(mpd.ouch)$optima$genomesize
+mpd.ouwie$theta[,1]
+
+## Compare the likelihoods
+summary(hansen(gsz, tree=tree, regimes=regimes['mpd'], sqrt.alpha=sqrt(mpd.ouwie$solution["alpha",1]), sigma=sqrt(mpd.ouwie$solution["sigma.sq",1]), fit=FALSE))$loglik
+mpd.ouwie$loglik
+```
+
+Finally, I will consider the 'metamorphosis' tree painting shown in Fig. \@ref(fig:meta), where I again see good agreement between $\texttt{OUwie}$ and $\texttt{ouch}$.
+
+```{r fig:meta, fig.height=6, fig.width=6, fig.cap="The metamorphosis regime painting"}
+plot(tree_metamorphosis)
+nodelabels(pch=21, bg=tree_metamorphosis$node.label)
+
+```
+
+```{r, echo=TRUE}
+## Fit the metamorphosis hypothesis
+metamorphosis.ouwie <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
+
+## Compare sigma.sq estimates
+summary(metamorphosis.ouch)$sigma.squared %>% as.numeric
+metamorphosis.ouwie$solution["sigma.sq",1]
+
+## Compare alpha estimates
+summary(metamorphosis.ouch)$alpha %>% as.numeric
+metamorphosis.ouwie$solution["alpha",1]
+
+## Compare optima estimates
+summary(metamorphosis.ouch)$optima$genomesize
+metamorphosis.ouwie$theta[,1]
+
+## Compare the likelihoods
+summary(hansen(gsz, tree=tree, regimes=regimes['metamorphosis'], sqrt.alpha=sqrt(metamorphosis.ouwie$solution["alpha",1]), sigma=sqrt(metamorphosis.ouwie$solution["sigma.sq",1]), fit=FALSE))$loglik
+metamorphosis.ouwie$loglik
+```
+As such, I will proceed with fitting all of the other multi-rate models: a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
+
+```{r, echo=TRUE, eval=FALSE}
+## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
+metamorphosis.OUM <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.BMS <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMA <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMV <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMVA <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+mpd.OUM <- OUwie(tree_mpd,data.mpd,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.BMS <- OUwie(tree_mpd,data.mpd,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMA <- OUwie(tree_mpd,data.mpd,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMV <- OUwie(tree_mpd,data.mpd,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMVA <- OUwie(tree_mpd,data.mpd,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+mpdMpleth.OUM <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.BMS <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMA <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMV <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMVA <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+## save these results
+results <- list(BM1=bm.ouwie,
+                metamorphosis.OUM=metamorphosis.OUM,
+                metamorphosis.BMS=metamorphosis.BMS,
+                metamorphosis.OUMA=metamorphosis.OUMA,
+                metamorphosis.OUMV=metamorphosis.OUMV,
+                metamorphosis.OUMVA=metamorphosis.OUMVA,
+                mpd.OUM=mpd.OUM,
+                mpd.BMS=mpd.BMS,
+                mpd.OUMA=mpd.OUMA,
+                mpd.OUMV=mpd.OUMV,
+                mpd.OUMVA=mpd.OUMVA,
+                mpdMpleth.OUM=mpdMpleth.OUM,
+                mpdMpleth.BMS=mpdMpleth.BMS,
+                mpdMpleth.OUMA=mpdMpleth.OUMA,
+                mpdMpleth.OUMV=mpdMpleth.OUMV,
+                mpdMpleth.OUMVA=mpdMpleth.OUMVA
+                )
+saveRDS(results, "all_model_fits.RDS")
+
+```
 
 ```{r}
-
-mpd.ouwie <- OUwie(tree_mpd,data.mpd,model=c("OUM"),root.station=TRUE)
-meta.ouwie <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=TRUE)
-mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
-meta.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
-
-
-## Multiple-rate BM
-mpdMpleth.BMS <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BMS"),root.station=TRUE)
-mpd.BMS <- OUwie(tree_mpd,data.mpd,model=c("BMS"),root.station=TRUE)
-meta.BMS <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("BMS"),root.station=TRUE)
-
-
-
-## Fit hansen model to the data
-bm.ouch <- brown(gsz, tree)
-mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
-mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
-meta.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
-ou1.ouch <- hansen(gsz, tree, regimes['OU1'], sqrt.alpha=1, sigma=1)
-
-
-
-
+results <- readRDS("all_model_fits.RDS")
 ```
 
-## Including Plots
+The best-fitting model is the OU model with 4 selective regimes (1=direct development, 2=metamorphosis, 3=metamorphosing plethodontids, 4=plethodontids), with separate drift parameters for each regime, although the model with a single drift parameter has very similar AICc score.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, echo=TRUE}
+data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names, 
+           AICc = lapply(results, function(x) x$AICc) %>% unlist) %>% 
+  arrange(AICc)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+To help interpret the biological implications of the parameter values of the best-fitting model, it is useful to calculate the values of the selection strength and drift terms of the OU model ($\alpha*(\theta-X)$ and $\sigma$).
+I will assume that $X$ is the average genome size for salamanders in each of the selective regimes. 
+Plugging those genome size values, along with the corresponding parameter estimates for each regime gives a sense of how strong selection and drift are in each regime.
+Based on this data, you can say genome size for the direct developers and the metamorphosers is primarily driven by drift, whereas plethodontids appear to be under fairly strong selection for either small genome size (metamorphosing plethodontids) or large genome size (direct-developing plethodontids).
+
+```{r, echo=TRUE}
+data.mpdMpleth %>% group_by(mpdMpleth) %>% summarise(meanGenomeSize=signif(mean(genomesize),3)) %>% 
+  mutate(., 
+         alpha=results[["mpdMpleth.OUMV"]]$solution['alpha',] %>% signif(3),
+         theta=results[["mpdMpleth.OUMV"]]$theta[,1] %>% signif(3),
+         'selection strength'=(alpha*(theta-meanGenomeSize)) %>% signif(3),
+         'drift intensity'=sqrt(results[["mpdMpleth.OUMV"]]$solution['sigma.sq',]) %>% signif(3))
+                    
+```
+
+However, it is important to assess how strong the support for this hypothesis truly is. 
+Following the protocol of Boettiger et al. (2012) for phylogenetic Monte Carlo, I need to simulate datasets under different models and ask how often the true (data-generating) model is rejected in favor of an alternative model.
+At the very least, I need to do this for the multi-$\sigma$ and single-$\sigma$ OU models with four selective optima, but I should also include Brownian motion to include a non-adaptive hypothesis.
