@@ -1,26 +1,29 @@
 ---
 title: "Phylogenetic Analysis of Salamander Genome Size"
 author: "Clay Cressler"
-date: "02/06/2020"
-output: html_document
+date: "06/09/2020"
+output: bookdown::html_document2
+self_contained: no
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE,
+                      dev=c('png','tiff'),
+                      fig.path='figures/')
+library(ape)
+library(ouch)
+library(OUwie)
+library(tidyverse)
+library(parallel)
+
 ```
 
 This is an updated version of the analyses that were initially carried out several years ago. 
 We had wanted to use $\texttt{Ouwie}$ to do these analyses but previously, there were undiagnosed issues with its fitting algorithm.
 As such, we ended up using $\texttt{ouch}$ for all analyses, which prevented us from ever testing models with multiple $\alpha$ or $\sigma^2$ parameters.
 However, I spent time working through these issues in Spring 2020 and am now satisfied that $\texttt{ouch}$ and $\texttt{OUwie}$ produce identical results, at least once you specify a value for 'shift.point' to make the way that $\texttt{OUwie}$ handles regimes identical to $\texttt{ouch}$.
-Nevertheless, I will fit the models using both $\texttt{OUwie}$ and $\texttt{ouch}$ to confirm they are giving similar results when they should. 
 
 ```{r, echo=FALSE}
-library(ape, quietly=TRUE)
-library(ouch, quietly=TRUE)
-library(OUwie, quietly=TRUE)
-library(tidyverse)
-
 tree <- read.nexus("av_ultra_fulldataset.nex")
 tree_metamorphosis <- tree_mpd <- tree_mpdMpleth <- tree
 ## Load the hypotheses
@@ -29,14 +32,6 @@ nodedata <- nodedata[,c('node','metamorphosis','mpd','mpdMpleth')]
 ## metamorphosis has two regimes: M, x
 ## mpd has three regimes: D, M, P
 ## mpdMpleth has four regimes: D, M, Mpleth, P
-## Node Colors for plots
-nodecol <- nodedata
-nodecol[-1] <- sapply(nodecol[-1], as.character)
-nodecol[nodecol=="x"] <- "brown"
-nodecol[nodecol=="M"] <- "red"
-nodecol[nodecol=="D"] <- "black"
-nodecol[nodecol=="P"] <- "dodgerblue1"
-nodecol[nodecol=="Mpleth"] <- "purple"
 ## code Regime names as numbers for the OUwie algorithm
 nn <- nodedata
 nn[-1] <- sapply(nn[-1], as.character)
@@ -58,14 +53,6 @@ ndat <- dat[is.na(dat$genomesize),]   # node data
 oo <- sapply(tree$tip.label, function(x) grep(x, tdat$labels))
 tipdat <- tdat[oo,]
 tipdat <- tipdat[c("labels", "metamorphosis", "mpd", "mpdMpleth", "genomesize")]
-## Tip Colors for plots
-tipcol <- tipdat
-tipcol[,1:(ncol(tipdat)-1)] <- sapply(tipcol[,1:(ncol(tipdat)-1)], as.character)
-tipcol[tipcol=="x"] <- "brown"
-tipcol[tipcol=="M"] <- "red"
-tipcol[tipcol=="D"] <- "black"
-tipcol[tipcol=="P"] <- "dodgerblue1"
-tipcol[tipcol=="Mpleth"] <- "purple"
 ## code Regime names as numbers for the OUwie algorithm
 tt <- tipdat
 tt[,1:(ncol(tipdat)-1)] <- sapply(tt[,1:(ncol(tipdat)-1)], as.character)
@@ -74,7 +61,6 @@ tt[tt=="M"] <- 2
 tt[tt=="Mpleth"] <- 3
 tt[tt=="P"] <- 4
 tt[tt=="x"] <- 5
-
 ### input dataframes - one for each hypothesis
 data.metamorphosis <- tt[c("labels", "metamorphosis", "genomesize")]
 data.mpd <- tt[c("labels", "mpd", "genomesize")]
@@ -91,11 +77,10 @@ dat <- dat1
 rownames(dat) <- dat$nodes
 regimes <- dat[c("metamorphosis", "mpd", "mpdMpleth","OU1","fivereg")]
 gsz <- log(dat['genomesize'])
+
 ```
 
-First up is a simple comparison of Brownian motion fits, which you can see are almost identical. 
-
-```{r, echo=TRUE}
+```{r, echo=FALSE, eval=FALSE}
 ## Single-rate BM (this is hypothesis-independent)
 bm.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE,quiet=TRUE)
 bm.ouch <- brown(gsz, tree)
@@ -107,16 +92,10 @@ summary(bm.ouch)$theta %>% as.numeric
 bm.ouwie$theta[1]
 
 ```
-```{r fig:mpdMpleth, fig.height=6, fig.width=6, fig.cap="The mpdMpleth regime painting"}
-plot(tree_mpdMpleth)
-nodelabels(pch=21, bg=tree_mpdMpleth$node.label)
 
-```
-Now let's fit a multiple-optima Ornstein-Uhlenbeck model to the mpdMpleth regime painting using both $\texttt{OUwie}$ and $\texttt{ouch}$, shown in Fig. \@ref(fig:mpdMpleth).
-From this, you can see that all of the parameter estimates are quite similar, and the likelihood, calculated by $\texttt{ouch}$ using the $\texttt{OUwie}$ parameter estimates, is identical to the fourth decimal place. 
-Obviously I wish they were completely identical, but I'll take it.
+Here are the three different adaptive hypothesis regime paintings (Fig. \@ref(fig:hyp)). 
 
-```{r, echo=TRUE}
+```{r, echo=FALSE, eval=FALSE}
 ## Fit the mpdMpleth hypothesis
 mpdMpleth.ouwie <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
@@ -140,17 +119,28 @@ mpdMpleth.ouwie$loglik
 
 ```
 
-I will repeat this analysis with both methods for the other regime paintings, starting with the mpd painting shown in Fig. \@ref(fig:mpd).
-And again, we see really strong evidence that the two methods are nearly identical.
+```{r hyp, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The three evolutionary hypotheses, specified as regime paintings. Black = Direct development, Red = Metamorphosis, Green = Plethodontid metamorphosis, Blue = Paedomorphosis, Cyan = Direct development or paedomorphosis."}
 
-```{r fig:mpd, fig.height=6, fig.width=6, fig.cap="The mpd regime painting"}
-plot(tree_mpd)
+#png(file="~/Desktop/hypotheses.png", width=5, height=7, units='in', res=300)
+par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5))
+layout(matrix(c(rep(1,1),rep(2,1), rep(3,3)), 1, 5, byrow=TRUE))
+plot(tree_metamorphosis, show.tip.label=FALSE)
+mtext("metamorphosis", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_metamorphosis$node.label)
+
+plot(tree_mpd, show.tip.label=FALSE)
+mtext("meta-paed-dd", side=3, line=0, cex=0.75)
 nodelabels(pch=21, bg=tree_mpd$node.label)
+
+plot(tree_mpdMpleth)
+mtext("meta2-paed-dd            ", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_mpdMpleth$node.label)
+#dev.off()
 
 ```
 
 
-```{r, echo=TRUE}
+```{r, echo=FALSE, eval=FALSE}
 ## Fit the mpd hypothesis
 mpd.ouwie <- OUwie(tree_mpd,data.mpd,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
@@ -172,15 +162,7 @@ summary(hansen(gsz, tree=tree, regimes=regimes['mpd'], sqrt.alpha=sqrt(mpd.ouwie
 mpd.ouwie$loglik
 ```
 
-Finally, I will consider the 'metamorphosis' tree painting shown in Fig. \@ref(fig:meta), where I again see good agreement between $\texttt{OUwie}$ and $\texttt{ouch}$.
-
-```{r fig:meta, fig.height=6, fig.width=6, fig.cap="The metamorphosis regime painting"}
-plot(tree_metamorphosis)
-nodelabels(pch=21, bg=tree_metamorphosis$node.label)
-
-```
-
-```{r, echo=TRUE}
+```{r, echo=FALSE, eval=FALSE}
 ## Fit the metamorphosis hypothesis
 metamorphosis.ouwie <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 metamorphosis.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
@@ -201,9 +183,10 @@ metamorphosis.ouwie$theta[,1]
 summary(hansen(gsz, tree=tree, regimes=regimes['metamorphosis'], sqrt.alpha=sqrt(metamorphosis.ouwie$solution["alpha",1]), sigma=sqrt(metamorphosis.ouwie$solution["sigma.sq",1]), fit=FALSE))$loglik
 metamorphosis.ouwie$loglik
 ```
-As such, I will proceed with fitting all of the other multi-rate models: a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
 
-```{r, echo=TRUE, eval=FALSE}
+Since I have confirmed that it is possible to get nearly identical results between $\texttt{OUwie}$ and $\texttt{ouch}$, I will proceed with fitting all of the other multi-rate models: a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
+
+```{r, echo=FALSE, eval=FALSE}
 ## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
 metamorphosis.OUM <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 metamorphosis.BMS <- OUwie(tree_metamorphosis,data.metamorphosis,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
@@ -245,24 +228,30 @@ saveRDS(results, "all_model_fits.RDS")
 
 ```
 
-```{r}
+```{r, echo=FALSE}
 results <- readRDS("all_model_fits.RDS")
 ```
 
-The best-fitting model is the OU model with 4 selective regimes (1=direct development, 2=metamorphosis, 3=metamorphosing plethodontids, 4=paedomorphosis), with separate drift parameters for each regime, although the model with a single drift parameter has very similar AICc score.
+The best-fitting model is the OU model with 4 selective regimes (1=direct development, 2=metamorphosis, 3=metamorphosing plethodontids, 4=paedomorphosis), with separate drift parameters for each regime, although the model with a single drift parameter has very similar AICc score. Here are the AICc values and parameter estimates for each of the models.
 
-```{r, echo=TRUE}
-data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names, 
-           AICc = lapply(results, function(x) x$AICc) %>% unlist) %>% 
+```{r, echo=FALSE}
+data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names,
+           loglik = lapply(results, function(x) x$loglik) %>% unlist %>% signif(3),
+           AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
+           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3)) %>% unlist,
+           sigma = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% sqrt %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
+           ) %>% 
   arrange(AICc)
 ```
 
-To help interpret the biological implications of the parameter values of the best-fitting model, it is useful to calculate the values of the selection strength and drift terms of the OU model ($\alpha*(\theta-X)$ and $\sigma$).
+To help interpret the biological implications of the parameter values of the best-fitting model, it is useful to calculate the values of the selection strength and drift terms of the OU model ($\alpha (\theta-X)$ and $\sigma$).
 I will assume that $X$ is the average genome size for salamanders in each of the selective regimes. 
 Plugging those genome size values, along with the corresponding parameter estimates for each regime gives a sense of how strong selection and drift are in each regime.
-Based on this data, you can say genome size for the direct developers and the metamorphosers is primarily driven by drift, whereas metamorphosing plethodontids appear to be under fairly strong selection for small genome size and paedomorphs for large genome size.
+Based on this data, you can say genome size for the direct developers and the metamorphosers is primarily driven by drift, whereas metamorphosing plethodontids appear to be under fairly strong selection for small genome size and paedomorphs for large genome size. 
+Or, to put it another way, trait change in direct developers and metamorphosers is dominated by random processes, but there is a strong deterministic trend towards small genomes in metamorphosing plethodontids, and towards large genomes in paedomorphs.
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 data.mpdMpleth %>% group_by(mpdMpleth) %>% summarise(meanGenomeSize=signif(mean(genomesize),3)) %>% 
   mutate(., 
          alpha=results[["mpdMpleth.OUMV"]]$solution['alpha',] %>% signif(3),
@@ -271,18 +260,22 @@ data.mpdMpleth %>% group_by(mpdMpleth) %>% summarise(meanGenomeSize=signif(mean(
          'drift intensity'=sqrt(results[["mpdMpleth.OUMV"]]$solution['sigma.sq',]) %>% signif(3))
                     
 ```
-
 However, it is important to assess how strong the support for this hypothesis truly is. 
 Following the protocol of Boettiger et al. (2012) for phylogenetic Monte Carlo, I need to simulate datasets under different models and ask how often the true (data-generating) model is rejected in favor of an alternative model.
 We will do the following pairwise comparisons of models: 
+
 1. mpdMpleth (OUMV) versus BM1: this tests whether we can confidently reject a non-adaptive hypothesis;
+
 2. mpdMpleth (OUMV) versus mpdMpleth (OUM): this tests whether multiple $\sigma$ values is actually well-supported;
+
 3. mpdMpleth (OUMV) versus mpd (OUM): this tests whether a separate regime for metamorphosing plethodontids is supported;
+
 4. mpdMpleth (OUMV) versus metamorphosis (OUM): this tests whether distinguishing between differnet non-metamorphosis strategies is supported.
-So we will simulate datasets under each of the 5 models above, and then fit data generated by each of the two models under comparison to each of those models.
+
+We will simulate datasets under each of the 5 models above, and then fit data generated by each of the two models under comparison to each of those models.
 
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 
 ## Generate 1000 simulated datasets under each of the 5 models of interest
 PMCdata <- list(length=1000)
@@ -435,55 +428,514 @@ fitComparison <- function(data) {
        fit.oum.meta.to.oum.meta.data=fit.oum.meta.to.oum.meta.data)
 }
   
-system.time(fitComparison(PMCdata[[1]]) -> timing)
-
-library(parallel)
-mclapply(PMCfits,
+mclapply(PMCdata[1:500],
          fitComparison,
-         mc.cores=4) -> pmcfits200
-
-  mpdMpleth2meta <- OUwie(tree_mpdMpleth,data[["meta"]],model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-  
-  
-  
-}
-
-#   fit.oum.meta.to.oum.meta.data$data %>% tail
-#   fit.oumv.mpdMpleth.to.oum.meta.data$data %>% tail
-#   
-#   fit.oum.mpd.to.oum.mpd.data$data %>% tail
-#   fit.oumv.mpdMpleth.to.oum.mpd.data$data %>% tail
-#   
-#   fit.bm1.to.bm1.data$data %>% tail
-#   fit.oumv.mpdMpleth.to.bm1.data$data %>% tail
-#   
-#   fit.oumv.mpdMpleth.to.oum.mpdMpleth.data$data %>% tail
-#   fit.oum.mpdMpleth.to.oum.mpdMpleth.data$data %>% tail
-#   
-#   fit.oum.meta.to.oumv.mpdMpleth.data$data %>% tail
-#   fit.oum.mpd.to.oumv.mpdMpleth.data$data %>% tail
-#   fit.oum.mpdMpleth.to.oumv.mpdMpleth.data$data %>% tail
-#   fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data$data %>% tail
-#   fit.bm1.to.oumv.mpdMpleth.data$data %>% tail
-
-
+         mc.cores=4) -> PMCfits
+saveRDS(PMCfits, file="PMCfits.RDS")
 
 ```
 
+We can also use these fits to look at the confidence intervals for each of the parameters of the best-fitting model using a parametric bootstrap.
+
 ```{r}
-
-BM1fits2BM1 <- readRDS("BM1fits2BM1.RDS")
-BM1fits2OUM <- readRDS("BM1fits2OUM.RDS")
-BM1fits2OUMV <- readRDS("BM1fits2OUMV.RDS")
+PMCfits <- readRDS("PMCfits.RDS")
   
-OUMfits2BM1 <- readRDS("OUMfits2BM1.RDS")
-OUMfits2OUM <- readRDS("OUMfits2OUM.RDS")
-OUMfits2OUMV <- readRDS("OUMfits2OUMV.RDS")
-  
-OUMVfits2BM1 <- readRDS("OUMVfits2BM1.RDS")
-OUMVfits2OUM <- readRDS("OUMVfits2OUM.RDS")
-OUMVfits2OUMV <- readRDS("OUMVfits2OUMV.RDS")
+## Bootstrap parameter estimates
+data.frame(parameter=c('alpha','sigma.sq (DD)', 'sigma.sq (M)', 'sigma.sq (Mpleth)', 'sigma.sq (P)', 'theta (DD)', 'theta (M)', 'theta (Mpleth)', 'theta (P)'),
+           CI=c((lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$solution['alpha',] %>% unique) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$solution['sigma.sq',1]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$solution['sigma.sq',2]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$solution['sigma.sq',3]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$solution['sigma.sq',4]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$theta[1,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$theta[2,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$theta[3,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$theta[4,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","))
+)
+```
 
-## Bootstrap CI for the parameters can be pulled out of the OUMVfits2OUMV file
+
+To determine whether the data really supports the conclusions we want to draw from the AICc table, we use the phylogenetic Monte Carlo approach of Boettiger et al. 2012. 
+We define the difference in the log-likelihoods between the two models as our test statistic: $\delta  = -2 (\log L_0 - \log L_1)$, where we assume that the $L_1$ is the likelihood of the more complex model.
+Higher values of this likelihood ratio indicate more support for the complex model.
+We will use the simulated datasets to estimate the distribution of $\delta$ when the data is generated by either of the two models under comparison.
+Our first comparison is between the mpdMpleth adaptive hypothesis, fitted with the OUMV model, and the non-adaptive Brownian motion hypothesis.
+The p-value for this comparison is essentially 0: when the data is generated by a non-adaptive model, the value of the test statistic is *never* as large as the value that we observed with the true dataset.
+
+```{r}
+## The true value of the test statistic
+delta <- -2*(results[["BM1"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+
+## The distribution of the test statistic when the data is generated by the BM1 model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.bm1.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.bm1.data"]]$loglik) %>% unlist))
+
+## the proportion of the simulated values larger than the test statistic provides an approximation to the p-value for the test, the probability that a difference at least as large would be seen under model 0 (BM)
+sum(delta < delta.dist)/length(delta.dist)
+
+```
+We can also look at the overlap between the distributions of the test statistic when the data is generated by the non-adaptive model versus the adaptive model to get a sense of power. You can see that the power is very high (0.994), meaning that 99.4\% of the test statistic values when the data is generated by the adaptive model are larger than the 95th percentile of the distribution when the data is generated by the non-adaptive model. Both the p-value and the power can be visualized by a plot of the two distributions  (Fig. \@ref(fig:pmcResults)A).)
+
+```{r}
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+## The degree of overlap between this distribution and the one above gives a sense of the power.
+## The amount of this distribution to the right of the test statistic value that would reject the non-adaptive model with a false positive rate of 5% above gives the probability of rejecting model 0 when the data are produced by model 1 (e.g., the power)
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+```{r pmcResults, echo=FALSE, fig.height=7, fig.width=6, fig.cap="Comparing the distributions of the test statistic when the data is generated by the non-adaptive model (bm1) or the adaptive model (oumv.mpdMpleth). The dashed line gives the actual value of the test statistic for the true data."}
+par(mar=c(5,5,1,1), oma=rep(0,4), mfrow=c(2,2))
+## BM1 versus mpdMpleth OUMV
+delta <- -2*(results[["BM1"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.bm1.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.bm1.data"]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('brownian','meta2-dd-paed'), fill=c(gray(0.7),gray(0.2)), bty='n', cex=0.75)
+legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "A", bty='n', xjust=0.5, yjust=0.5)
+
+## mpd versus mpdMpleth OUMV
+delta <- -2*(results[["mpd.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpd.to.oum.mpd.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.mpd.data"]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpd.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('meta-dd-paed','meta2-dd-paed'), fill=c(gray(0.7),gray(0.2)), bty='n', cex=0.75)
+legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "B", bty='n', xjust=0.5, yjust=0.5)
+
+## meta versus mpdMpleth OUMV
+delta <- -2*(results[["metamorphosis.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.meta.data"]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('metamorphosis','meta2-dd-paed'), fill=c(gray(0.7),gray(0.2)), bty='n', cex=0.75)
+legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "C", bty='n', xjust=0.5, yjust=0.5)
+
+##  mpdMpleth OUM versus mpdMpleth OUMV
+delta <- -2*(results[["mpdMpleth.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpdMpleth.to.oum.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.mpdMpleth.data"]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('meta2-dd-paed (OUM)','meta2-dd-paed (OUMV)'), fill=c(gray(0.7),gray(0.2)), bty='n', cex=0.75)
+legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "D", bty='n', xjust=0.5, yjust=0.5)
+
+```
+
+We can repeat these analyses to look at the p-value and the power for the second comparison, between the OUMV and OUM models fit to the mpdMpleth hypothesis. Again, we see a fairly low p-value (0.046) and a fairly high power (0.8), although there is clearly more overlap between the two distributions  (Fig. \@ref(fig:pmcResults)D).
+
+```{r}
+## The true value of the test statistic
+delta <- -2*(results[["mpdMpleth.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpdMpleth model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpdMpleth.to.oum.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.mpdMpleth.data"]]$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+
+We can also examine the p-value and the power for the third comparison, which determines how much support there is for metamorphosing plethodontids being a unique selective regime. Again, we see a fairly low p-value (0.038) and a fairly high power (0.81), although there is clearly more overlap between the two distributions (Fig. \@ref(fig:pmcResults)C).
+
+```{r}
+## The true value of the test statistic
+delta <- -2*(results[["mpd.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpd model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpd.to.oum.mpd.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.mpd.data"]]$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.mpd.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+
+
+Finally, we can examine the p-value and the power for the fourth comparison, which determines how much support there is distinguishing among different metamorphosis strategies. Again, we see a fairly low p-value (0.038) and a fairly high power (0.87), and there is less overlap between the two distributions  (Fig. \@ref(fig:pmcResults)C).
+
+```{r}
+## The true value of the test statistic
+delta <- -2*(results[["metamorphosis.OUM"]]$loglik - results[["mpdMpleth.OUMV"]]$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpd model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oum.meta.data"]]$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[["fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data"]]$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+
+#### Analyses with a different evolutionary history for plethodontids
+In the above analyses, the ancestor of all plethodontids is assumed to be a metamorphosing amphibian. However, there is some debate about this, and some researchers think that this ancestor was actually a direct developer. As such, we want to make sure that the conlusions drawn above are unaffected by this assumption. This requires modifying all three adaptive hypotheses to "repaint" the ancestral node.
+
+```{r, echo=FALSE}
+# which(tree_mpdMpleth$node.label=="3")
+# [1] 23 40 41 42 45 46 81 82 83 85 86 87 88
+tree_mpdMpleth2 <- tree_mpdMpleth
+tree_mpdMpleth2$node.label[23] <- "1"
+
+tree_mpd2 <- tree_mpd
+tree_mpd2$node.label[23] <- "1"
+
+tree_metamorphosis2 <- tree_metamorphosis
+tree_metamorphosis2$node.label[23] <- "5"
+
+# plot(tree_mpdMpleth2)
+# nodelabels(pch=21, bg=tree_mpdMpleth2$node.label)
+# 
+# plot(tree_mpd2)
+# nodelabels(pch=21, bg=tree_mpd2$node.label)
+# 
+# plot(tree_metamorphosis2)
+# nodelabels(pch=21, bg=tree_metamorphosis2$node.label)
+
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
+metamorphosis.OUM <- OUwie(tree_metamorphosis2,data.metamorphosis,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.BMS <- OUwie(tree_metamorphosis2,data.metamorphosis,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMA <- OUwie(tree_metamorphosis2,data.metamorphosis,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMV <- OUwie(tree_metamorphosis2,data.metamorphosis,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metamorphosis.OUMVA <- OUwie(tree_metamorphosis2,data.metamorphosis,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+mpd.OUM <- OUwie(tree_mpd2,data.mpd,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.BMS <- OUwie(tree_mpd2,data.mpd,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMA <- OUwie(tree_mpd2,data.mpd,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMV <- OUwie(tree_mpd2,data.mpd,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpd.OUMVA <- OUwie(tree_mpd2,data.mpd,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+mpdMpleth.OUM <- OUwie(tree_mpdMpleth2,data.mpdMpleth,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.BMS <- OUwie(tree_mpdMpleth2,data.mpdMpleth,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMA <- OUwie(tree_mpdMpleth2,data.mpdMpleth,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMV <- OUwie(tree_mpdMpleth2,data.mpdMpleth,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.OUMVA <- OUwie(tree_mpdMpleth2,data.mpdMpleth,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+## save these results
+results <- list(metamorphosis.OUM=metamorphosis.OUM,
+                metamorphosis.BMS=metamorphosis.BMS,
+                metamorphosis.OUMA=metamorphosis.OUMA,
+                metamorphosis.OUMV=metamorphosis.OUMV,
+                metamorphosis.OUMVA=metamorphosis.OUMVA,
+                mpd.OUM=mpd.OUM,
+                mpd.BMS=mpd.BMS,
+                mpd.OUMA=mpd.OUMA,
+                mpd.OUMV=mpd.OUMV,
+                mpd.OUMVA=mpd.OUMVA,
+                mpdMpleth.OUM=mpdMpleth.OUM,
+                mpdMpleth.BMS=mpdMpleth.BMS,
+                mpdMpleth.OUMA=mpdMpleth.OUMA,
+                mpdMpleth.OUMV=mpdMpleth.OUMV,
+                mpdMpleth.OUMVA=mpdMpleth.OUMVA
+                )
+saveRDS(results, "all_model_fits_2.RDS")
+
+```
+
+```{r, echo=FALSE}
+results <- readRDS("all_model_fits_2.RDS")
+```
+
+You can see that the order of the models is completely unaffected by this change, which makes sense, given how ancient this branching point is. The best-fitting model remains the OU model with 4 selective regimes (1=direct development, 2=metamorphosis, 3=metamorphosing plethodontids, 4=paedomorphosis), with separate drift parameters for each regime, although the model with a single drift parameter has very similar AICc score. Here are the AICc values and parameter estimates for each of the models.
+
+```{r, echo=FALSE}
+data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names, 
+           AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
+           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3)) %>% unlist,
+           sigma.sq = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
+           ) %>% 
+  arrange(AICc) %>% as.data.frame
+```
+
+
+#### Analyses with $\texttt{ouch}$
+One final caveat: in all of the above, I fit the models using the $\texttt{OUwie}$ option 'root.station=FALSE', which means that the value at the base of the tree is not drawn from the stationary distribution of that regime. However, the root state is not estimated as a separate optimum either - instead the root is treated as any other node in its regime. This is because it was unclear how to modify the covariance matrix to account for the root being drawn from the stationary distribution when there are multiple $\alpha$ or $\sigma$ values. Neither Jeremy Beaulieu nor Lam Si Tung Ho knew how to modify it for these complex models. Therefore, to make the comparison fair, I set root.station=FALSE for *all* of the models (even though I could have set root.station=TRUE for the OUM models). Unfortunately, this is not a trivial change, as you can see by comparing the parameter estimates and likelihoods under the two models. In particular, as soon as root.station is set to false, the estimates of selection strength and the optima jump to fairly ridiculous values, but the likelihood also improves considerably.
+
+```{r, eval=FALSE}
+## The fit when root.station=TRUE
+mpdMpleth.ouwie.1 <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.ouwie.1
+
+## The fit when root.station=FALSE
+mpdMpleth.ouwie.2 <- OUwie(tree_mpdMpleth,data.mpdMpleth,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+mpdMpleth.ouwie.2
+
+```
+
+Therefore, I feel that it is useful to actually repeat all of the analyses with $\texttt{ouch}$, just to make sure that the overall phylogenetic conclusions don't change, even though the parameter estimates do. One major difference is that Brownian motion fits the data much better now than it did under the $\texttt{OUwie}$ simulations.
+
+```{r}
+mpdMpleth.ouch <- hansen(gsz, tree, regimes['mpdMpleth'], sqrt.alpha=1, sigma=1)
+mpd.ouch <- hansen(gsz, tree, regimes['mpd'], sqrt.alpha=1, sigma=1)
+meta.ouch <- hansen(gsz, tree, regimes['metamorphosis'], sqrt.alpha=1, sigma=1)
+ou1.ouch <- hansen(gsz, tree, regimes['OU1'], sqrt.alpha=1, sigma=1)
+bm.ouch <- brown(gsz, tree)
+
+data.frame(Hypothesis=c("mpdMpleth","mpd","metamorphosis","ou1","bm"),
+           AICc=c(summary(mpdMpleth.ouch)$aic.c %>% signif(3),
+                  summary(mpd.ouch)$aic.c %>% signif(3),
+                  summary(meta.ouch)$aic.c %>% signif(3),
+                  summary(ou1.ouch)$aic.c %>% signif(3),
+                  summary(bm.ouch)$aic.c) %>% signif(3),
+           alpha=c(summary(mpdMpleth.ouch)$alpha %>% as.numeric() %>% signif(3),
+                  summary(mpd.ouch)$alpha %>% as.numeric() %>% signif(3),
+                  summary(meta.ouch)$alpha %>% as.numeric() %>% signif(3),
+                  summary(ou1.ouch)$alpha %>% as.numeric() %>% signif(3),
+                  NA),
+          sigma.sq=c(summary(mpdMpleth.ouch)$sigma.sq %>% as.numeric() %>% signif(3),
+                  summary(mpd.ouch)$sigma.sq %>% as.numeric() %>% signif(3),
+                  summary(meta.ouch)$sigma.sq %>% as.numeric() %>% signif(3),
+                  summary(ou1.ouch)$sigma.sq %>% as.numeric() %>% signif(3),
+                  summary(bm.ouch)$sigma.sq %>% as.numeric() %>% signif(3)),
+          theta=c(summary(mpdMpleth.ouch)$optima$genomesize %>% signif(3) %>% paste(., collapse=", "),
+                  summary(mpd.ouch)$optima$genomesize %>% signif(3) %>% paste(., collapse=", "),
+                  summary(meta.ouch)$optima$genomesize %>% signif(3) %>% paste(., collapse=", "),
+                  summary(ou1.ouch)$optima$genomesize %>% signif(3) %>% paste(., collapse=", "),
+                  NA)) %>% arrange(., AICc)
+```
+We can also compare the evolutionary conclusions that we would draw from the parameter values themselves to those they we drew above with the OUMV model. You can see from the table below that the analysis results in very similar conclusions: for direct developers, there is a weak deterministic trend towards smaller genomes, but the stochastic component of the trait dynamics is larger; for metamorphosers, trait change is dominated by random processes because the mean genome size is close to the optimum; for metamorphosing plethodontids, there is a strong deterministic trend for small genomes; for paedomorphs, there is a strong deterministic trend towards large genomes. 
+
+```{r}
+data.mpdMpleth %>% group_by(mpdMpleth) %>% summarise(meanGenomeSize=signif(mean(genomesize),3)) %>% 
+  mutate(., 
+         alpha=summary(mpdMpleth.ouch)$alpha %>% as.numeric() %>% signif(3),
+         theta=summary(mpdMpleth.ouch)$optima$genomesize %>% signif(3),
+         'selection strength'=(alpha*(theta-meanGenomeSize)) %>% signif(3),
+         'drift intensity'=sqrt(summary(mpdMpleth.ouch)$sigma.sq %>% as.numeric() %>% signif(3))
+  )
+
+```
+However, there is an inherent flaw in the above comparison, in that $\alpha$ and $\sigma^2$ have very different units, so that $\alpha (\theta-X)$ has units of trait times time to the -1 power, whereas $\sigma$ has units of trait times time to the -1/2 power. 
+As such, we can also compute the dimensionless parameters of Cressler et al. (2015), which were shown to be very good determinants of the power and parameter estimation capacities of the OU method.
+I'm unsure of how to do a similar analysis with the OUMV model, since there are multiple $\sigma$ parameters.
+Regardless: the two parameters identified in Cressler et al. (2015) were the discriminability ratio $\frac{\sqrt{2\alpha}\Delta\theta}{\sigma}$ and the selection opportunity $\alpha T$, where $\Delta\theta=3.62-3.41=0.21$ is the smallest difference between selective optima and $T=1$ is the depth of the tree.
+Here the value of the discriminability ratio is `r sqrt(2*0.0941)*0.21/0.3478505` and the selection opportunity is just is 0.0941.
+Both of these values are quite small, and Cressler et al. (2015) suggests that both power and parameter estimation capability are fairly low in this region of parameter space.
+Thus, the results of the phylogenetic Monte Carlo are quite important, but very little should probably be made of the parameter estimates themselves.
+
+Repeating all of the phylogenetic Monte Carlo to ensure that the conclusions still hold for the three comparisons above: adaptive versus non-adaptive, mpdMpleth versus mpd, and mpdMpleth versus metamorphosis.   
+
+```{r, eval=FALSE, echo=FALSE}
+
+mpdMpleth.simdata <- simulate(mpdMpleth.ouch, nsim=500)
+mpd.simdata <- simulate(mpd.ouch, nsim=500)
+meta.simdata <- simulate(meta.ouch, nsim=500)
+bm.simdata <- simulate(bm.ouch, nsim=500)
+
+## Comparison 1
+mpdMpleth.fit.to.mpdMpleth.data <- lapply(mpdMpleth.simdata, function(x) hansen(x, tree, regimes['mpdMpleth'], sqrt.alpha=0.1, sigma=0.1))
+bm.fit.to.mpdMpleth.data <- lapply(mpdMpleth.simdata, function(x) brown(x, tree))
+bm.fit.to.bm.data <- lapply(bm.simdata, function(x) brown(x, tree))
+mpdMpleth.fit.to.bm.data <- lapply(bm.simdata, function(x) hansen(x, tree, regimes['mpdMpleth'], sqrt.alpha=0.1, sigma=0.1))
+
+## Comparison 2
+mpd.fit.to.mpdMpleth.data <- lapply(mpdMpleth.simdata, function(x) hansen(x, tree, regimes['mpd'], sqrt.alpha=0.1, sigma=0.1))
+mpd.fit.to.mpd.data <- lapply(mpd.simdata, function(x) hansen(x, tree, regimes['mpd'], sqrt.alpha=0.1, sigma=0.1))
+mpdMpleth.fit.to.mpd.data <- lapply(mpd.simdata, function(x) hansen(x, tree, regimes['mpdMpleth'], sqrt.alpha=0.1, sigma=0.1))
+
+## Comparison 3
+meta.fit.to.mpdMpleth.data <- lapply(mpdMpleth.simdata, function(x) hansen(x, tree, regimes['metamorphosis'], sqrt.alpha=0.1, sigma=0.1))
+meta.fit.to.meta.data <- lapply(meta.simdata, function(x) hansen(x, tree, regimes['metamorphosis'], sqrt.alpha=0.1, sigma=0.1))
+mpdMpleth.fit.to.meta.data <- lapply(meta.simdata, function(x) hansen(x, tree, regimes['mpdMpleth'], sqrt.alpha=0.1, sigma=0.1))
+
+PMCfits2 <- list(mpdMpleth.fit.to.mpdMpleth.data=mpdMpleth.fit.to.mpdMpleth.data,
+                bm.fit.to.mpdMpleth.data=bm.fit.to.mpdMpleth.data,
+                bm.fit.to.bm.data=bm.fit.to.bm.data,
+                mpdMpleth.fit.to.bm.data=mpdMpleth.fit.to.bm.data,
+                mpd.fit.to.mpdMpleth.data=mpd.fit.to.mpdMpleth.data,
+                mpd.fit.to.mpd.data=mpd.fit.to.mpd.data,
+                mpdMpleth.fit.to.mpd.data=mpdMpleth.fit.to.mpd.data,
+                meta.fit.to.mpdMpleth.data=meta.fit.to.mpdMpleth.data,
+                meta.fit.to.meta.data=meta.fit.to.meta.data,
+                mpdMpleth.fit.to.meta.data=mpdMpleth.fit.to.meta.data
+                )
+saveRDS(PMCfits2, "PMCfits2.RDS")
+
+```
+
+
+For the comparison of the mpdMpleth hypothesis to the non-adaptive hypothesis, the p-value is 0.046 and the power is 0.82.
+```{r}
+PMCfits2 <- readRDS("PMCfits2.RDS")
+## The true value of the test statistic
+delta <- -2*(summary(bm.ouch)$loglik - summary(mpdMpleth.ouch)$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpd model
+delta.dist <- -2*((lapply(PMCfits2[["bm.fit.to.bm.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.bm.data"]], function(f) summary(f)$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits2[["bm.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+```{r bmVSmpdMpleth, echo=FALSE, fig.cap="Comparing the distributions of the test statistic when the data is generated by a BM model (BM) or an OU model under the mpdMpleth hypothesis (mpdMpleth). The dashed line gives the actual value of the test statistic for the true data."}
+par(mar=c(5,5,1,1), oma=rep(0,4))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('BM','mpdMpleth'), fill=c(gray(0.7),gray(0.2)), bty='n')
+
+```
+
+For the comparison of the mpdMpleth hypothesis to the mpd hypothesis, the p-value is 0.052 and the power is 0.64, so we are a bit less confident that we can really discriminate between these two hypotheses.
+```{r}
+## The true value of the test statistic
+delta <- -2*(summary(mpd.ouch)$loglik - summary(mpdMpleth.ouch)$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpd model
+delta.dist <- -2*((lapply(PMCfits2[["mpd.fit.to.mpd.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.mpd.data"]], function(f) summary(f)$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits2[["mpd.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+```{r mpdVSmpdMpleth, echo=FALSE, fig.cap="Comparing the distributions of the test statistic when the data is generated by an OU model under the mpd hypothesis (mpd) or an OU model under the mpdMpleth hypothesis (mpdMpleth). The dashed line gives the actual value of the test statistic for the true data."}
+par(mar=c(5,5,1,1), oma=rep(0,4))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('mpd','mpdMpleth'), fill=c(gray(0.7),gray(0.2)), bty='n')
+
+```
+
+For the comparison of the mpdMpleth hypothesis to the metamorphosis hypothesis, the p-value is 0.072 and the power is 0.73, so we are a bit less confident that we can really discriminate between these two hypotheses.
+```{r}
+## The true value of the test statistic
+delta <- -2*(summary(meta.ouch)$loglik - summary(mpdMpleth.ouch)$loglik)
+
+## The distribution of the test statistic when the data is generated by the oum.mpd model
+delta.dist <- -2*((lapply(PMCfits2[["meta.fit.to.meta.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.meta.data"]], function(f) summary(f)$loglik) %>% unlist))
+
+## p-value for the test
+sum(delta < delta.dist)/length(delta.dist)
+
+## The distribution of the test statistic when the data is generated by the oumv.mpdMpleth model
+delta.dist.2 <- -2*((lapply(PMCfits2[["meta.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist) - 
+                    (lapply(PMCfits2[["mpdMpleth.fit.to.mpdMpleth.data"]], function(f) summary(f)$loglik) %>% unlist))
+## Power of the test
+sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+
+```
+```{r metaVSmpdMpleth, echo=FALSE, fig.cap="Comparing the distributions of the test statistic when the data is generated by an OU model under the metamorphosis hypothesis (metamorph) or an OU model under the mpdMpleth hypothesis (mpdMpleth). The dashed line gives the actual value of the test statistic for the true data."}
+par(mar=c(5,5,1,1), oma=rep(0,4))
+d1 <- density(delta.dist)
+d2 <- density(delta.dist.2)
+plot.new()
+plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+axis(1);axis(2);box('plot')
+mtext(side=1, line=3, expression(delta))
+mtext(side=2, line=3, 'Density')
+lines(d1$x, d1$y, col=gray(0.7))
+with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+lines(d2$x, d2$y, col=gray(0.2))
+with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+abline(v=delta, lwd=2, lty=2)
+legend(x='topright', c('metamorph','mpdMpleth'), fill=c(gray(0.7),gray(0.2)), bty='n')
 
 ```
