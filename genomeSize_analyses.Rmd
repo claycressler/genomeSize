@@ -364,21 +364,42 @@ fitComparison <- function(data) {
   ## Fit the bm1 data to the bm1 hypothesis (the true data-generating model)
   fit.bm1.to.bm1.data <- OUwie(tree_mpdMpleth, data[["bm1.data"]], model=c("BM1"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
-  #####################################################################
-  ## Pairwise comparision 2. mpdMpleth (OUMV) versus mpdMpleth (OUM) ##
-  #####################################################################
+  ##################################################################
+  ## Pairwise comparision 2. mpdMpleth (OUM) versus metamorphosis ##
+  ##################################################################
   
-  ## Fit the mpdMpleth hypothesis (OUM) model to the oumv.mpdMpleth data
-  fit.oum.mpdMpleth.to.oumv.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oumv.mpdMpleth.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  ## Fit the metamorphosis (OUM) model to the oum.mpdMpleth data
+  mpdMpleth.as.meta <- data[["oum.mpdMpleth.data"]]
+  mpdMpleth.as.meta[,2] <- data[["oum.meta.data"]][,2]
+  fit.oum.meta.to.oum.mpdMpleth.data <- OUwie(tree_metamorphosis, mpdMpleth.as.meta, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
-  ## Fit the mpdMpleth hypothesis (OUMV) model to the oum.mpdMpleth data
-  fit.oumv.mpdMpleth.to.oum.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oum.mpdMpleth.data"]],model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  ## Fit the mpdMpleth (OUM) model to the oum.meta data
+  meta.as.mpdMpleth <- data[["oum.meta.data"]]
+  meta.as.mpdMpleth[,2] <- data[["oum.mpdMpleth.data"]][,2]
+  fit.oum.mpdMpleth.to.oum.meta.data <- OUwie(tree_mpdMpleth, meta.as.mpdMpleth, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
-  ## Fit the mpdMpleth hypothesis (OUM) model to the oum.mpdMpleth data (the true data-generating model)
-  fit.oum.mpdMpleth.to.oum.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oum.mpdMpleth.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  ## Fit the metamorphosis (OUM) model to the oum.meta data (the true data-generating model)
+  fit.oum.meta.to.oum.meta.data <- OUwie(tree_metamorphosis, data[["oum.meta.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
+  ###################################################################
+  ## Pairwise comparision 3. mpdMpleth (OUMV) versus metamorphosis ##
+  ###################################################################
+  
+  ## Fit the metamorphosis (OUM) model to the oumv.mpdMpleth data
+  mpdMpleth.as.meta <- data[["oumv.mpdMpleth.data"]]
+  mpdMpleth.as.meta[,2] <- data[["oum.meta.data"]][,2]
+  fit.oum.meta.to.oumv.mpdMpleth.data <- OUwie(tree_metamorphosis, mpdMpleth.as.meta, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  ## Fit the mpdMpleth (OUMV) model to the oum.meta data
+  meta.as.mpdMpleth <- data[["oum.meta.data"]]
+  meta.as.mpdMpleth[,2] <- data[["oumv.mpdMpleth.data"]][,2]
+  fit.oum.mpdMpleth.to.oum.meta.data <- OUwie(tree_mpdMpleth, meta.as.mpdMpleth, model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  ## Fit the metamorphosis (OUM) model to the oum.meta data (the true data-generating model)
+  fit.oum.meta.to.oum.meta.data <- OUwie(tree_metamorphosis, data[["oum.meta.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
   ###############################################################
-  ## Pairwise comparision 3. mpdMpleth (OUMV) versus mpd (OUM) ##
+  ## Pairwise comparision 4. mpdMpleth (OUMV) versus mpd (OUM) ##
   ###############################################################
  
   ## Fit the mpd (OUM) model to the oumv.mpdMpleth data
@@ -394,44 +415,87 @@ fitComparison <- function(data) {
   ## Fit the mpd (OUM) model to the oum.mpd data (the true data-generating model)
   fit.oum.mpd.to.oum.mpd.data <- OUwie(tree_mpd, data[["oum.mpd.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
-  #########################################################################
-  ## Pairwise comparision 4. mpdMpleth (OUMV) versus metamorphosis (OUM) ##
-  #########################################################################
- 
-  ## Fit the metamorphosis (OUM) model to the oumv.mpdMpleth data
-  mpdMpleth.as.meta <- data[["oumv.mpdMpleth.data"]]
-  mpdMpleth.as.meta[,2] <- data[["oum.meta.data"]][,2]
-  fit.oum.meta.to.oumv.mpdMpleth.data <- OUwie(tree_metamorphosis, mpdMpleth.as.meta, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  #####################################################################
+  ## Pairwise comparision 5. mpdMpleth (OUMV) versus mpdMpleth (OUM) ##
+  #####################################################################
   
-  ## Fit the mpdMpleth (OUMV) model to the oum.meta data
+  ## Fit the mpdMpleth hypothesis (OUM) model to the oumv.mpdMpleth data
+  fit.oum.mpdMpleth.to.oumv.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oumv.mpdMpleth.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  ## Fit the mpdMpleth hypothesis (OUMV) model to the oum.mpdMpleth data
+  fit.oumv.mpdMpleth.to.oum.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oum.mpdMpleth.data"]],model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  ## Fit the mpdMpleth hypothesis (OUM) model to the oum.mpdMpleth data (the true data-generating model)
+  fit.oum.mpdMpleth.to.oum.mpdMpleth.data <- OUwie(tree_mpdMpleth,data[["oum.mpdMpleth.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  #########################################################################
+
+  list(## Comparison #1
+       fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data=fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data,
+       fit.bm1.to.oumv.mpdMpleth.data=fit.bm1.to.oumv.mpdMpleth.data,
+       fit.oumv.mpdMpleth.to.bm1.data=fit.oumv.mpdMpleth.to.bm1.data,
+       fit.bm1.to.bm1.data=fit.bm1.to.bm1.data,
+       ## Comparison #2
+       fit.oum.meta.to.oum.mpdMpleth.data=fit.oum.meta.to.oum.mpdMpleth.data,
+       fit.oum.mpdMpleth.to.oum.meta.data=fit.oum.mpdMpleth.to.oum.meta.data,
+       fit.oum.meta.to.oum.meta.data=fit.oum.meta.to.oum.meta.data,
+       ## Comparison #3
+       fit.oum.meta.to.oumv.mpdMpleth.data=fit.oum.meta.to.oumv.mpdMpleth.data,
+       fit.oumv.mpdMpleth.to.oum.meta.data=fit.oumv.mpdMpleth.to.oum.meta.data,
+       ## Comparison #4
+       fit.oum.mpd.to.oumv.mpdMpleth.data=fit.oum.mpd.to.oumv.mpdMpleth.data,
+       fit.oumv.mpdMpleth.to.oum.mpd.data=fit.oumv.mpdMpleth.to.oum.mpd.data,
+       fit.oum.mpd.to.oum.mpd.data=fit.oum.mpd.to.oum.mpd.data,
+       ## Comparison #5
+       fit.oum.mpdMpleth.to.oumv.mpdMpleth.data=fit.oum.mpdMpleth.to.oumv.mpdMpleth.data,
+       fit.oumv.mpdMpleth.to.oum.mpdMpleth.data=fit.oumv.mpdMpleth.to.oum.mpdMpleth.data,
+       fit.oum.mpdMpleth.to.oum.mpdMpleth.data=fit.oum.mpdMpleth.to.oum.mpdMpleth.data,
+       )
+}
+  
+fitComparison2 <- function(data) {
+  
+  ##################################################################
+  ## Pairwise comparision 1. mpdMpleth (OUM) versus metamorphosis ##
+  ##################################################################
+  
+  ## Fit the metamorphosis (OUM) model to the oum.mpdMpleth data
+  mpdMpleth.as.meta <- data[["oum.mpdMpleth.data"]]
+  mpdMpleth.as.meta[,2] <- data[["oum.meta.data"]][,2]
+  fit.oum.meta.to.oum.mpdMpleth.data <- OUwie(tree_metamorphosis, mpdMpleth.as.meta, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  
+  ## Fit the mpdMpleth (OUM) model to the oum.meta data
   meta.as.mpdMpleth <- data[["oum.meta.data"]]
-  meta.as.mpdMpleth[,2] <- data[["oumv.mpdMpleth.data"]][,2]
-  fit.oumv.mpdMpleth.to.oum.meta.data <- OUwie(tree_mpdMpleth, meta.as.mpdMpleth, model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  meta.as.mpdMpleth[,2] <- data[["oum.mpdMpleth.data"]][,2]
+  fit.oum.mpdMpleth.to.oum.meta.data <- OUwie(tree_mpdMpleth, meta.as.mpdMpleth, model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
   ## Fit the metamorphosis (OUM) model to the oum.meta data (the true data-generating model)
   fit.oum.meta.to.oum.meta.data <- OUwie(tree_metamorphosis, data[["oum.meta.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
   #########################################################################
 
-  list(fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data=fit.oumv.mpdMpleth.to.oumv.mpdMpleth.data,
-       fit.bm1.to.oumv.mpdMpleth.data=fit.bm1.to.oumv.mpdMpleth.data,
-       fit.oumv.mpdMpleth.to.bm1.data=fit.oumv.mpdMpleth.to.bm1.data,
-       fit.bm1.to.bm1.data=fit.bm1.to.bm1.data,
-       fit.oum.mpdMpleth.to.oumv.mpdMpleth.data=fit.oum.mpdMpleth.to.oumv.mpdMpleth.data,
-       fit.oumv.mpdMpleth.to.oum.mpdMpleth.data=fit.oumv.mpdMpleth.to.oum.mpdMpleth.data,
-       fit.oum.mpdMpleth.to.oum.mpdMpleth.data=fit.oum.mpdMpleth.to.oum.mpdMpleth.data,
-       fit.oum.mpd.to.oumv.mpdMpleth.data=fit.oum.mpd.to.oumv.mpdMpleth.data,
-       fit.oumv.mpdMpleth.to.oum.mpd.data=fit.oumv.mpdMpleth.to.oum.mpd.data,
-       fit.oum.mpd.to.oum.mpd.data=fit.oum.mpd.to.oum.mpd.data,
-       fit.oum.meta.to.oumv.mpdMpleth.data=fit.oum.meta.to.oumv.mpdMpleth.data,
-       fit.oumv.mpdMpleth.to.oum.meta.data=fit.oumv.mpdMpleth.to.oum.meta.data,
+  list(fit.oum.meta.to.oum.mpdMpleth.data=fit.oum.meta.to.oum.mpdMpleth.data,
+       fit.oum.mpdMpleth.to.oum.meta.data=fit.oum.mpdMpleth.to.oum.meta.data,
        fit.oum.meta.to.oum.meta.data=fit.oum.meta.to.oum.meta.data)
 }
-  
+
 mclapply(PMCdata[1:500],
          fitComparison,
          mc.cores=4) -> PMCfits
 saveRDS(PMCfits, file="PMCfits.RDS")
+
+mclapply(PMCdata[1:500],
+         fitComparison2,
+         mc.cores=4) -> PMCfits2
+
+PMCfits3 <- PMCfits
+for (i in 1:500) {
+  for (j in 1:length(PMCfits2[[i]])) {
+    PMCfits3[[i]][[names(PMCfits2[[i]])[j]]] <- PMCfits2[[i]][[j]]
+  }
+}
+
+
 
 ```
 
