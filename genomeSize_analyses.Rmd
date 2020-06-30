@@ -400,7 +400,7 @@ fitComparison <- function(data) {
   fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data <- OUwie(tree_meta.nf.dd.paed,data[["oumv.meta.nf.dd.paed.data"]],model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
   ##################################################################
-  ## Pairwise comparision 5. meta.nf.dd.paed (OUMV) versus meta.nf (OUMV) ##
+  ## Pairwise comparison 5. meta.nf.dd.paed (OUMV) versus meta.nf (OUMV) ##
   ##################################################################
  
   ## Fit the meta.nf.dd.paed model to the oumv.meta.nf data
@@ -414,7 +414,7 @@ fitComparison <- function(data) {
   fit.oumv.meta.nf.to.oumv.meta.nf.dd.paed.data <- OUwie(tree_meta.nf, meta.nf.dd.paed.as.meta.nf, model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
   #####################################################################
-  ## Pairwise comparision 6. meta.nf.dd.paed (OUMV) versus meta.nf.dd.paed (OUM) ##
+  ## Pairwise comparison 6. meta.nf.dd.paed (OUMV) versus meta.nf.dd.paed (OUM) ##
   #####################################################################
   
   ## Fit the meta.nf.dd.paed hypothesis (OUM) model to the oumv.meta.nf.dd.paed data
