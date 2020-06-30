@@ -454,8 +454,6 @@ fitComparison <- function(data) {
     fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data=fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data)
 }
 
-system.time(fitComparison(PMCdata[[1]]))
-
 numCores <- detectCores()
 PMCfits <- vector(mode='list', length=500)
 for (i in 1:5) {
@@ -465,6 +463,9 @@ for (i in 1:5) {
            mc.cores=numCores) -> fits
   PMCfits[((i-1)*100+1):(100*i)] <- fits
   saveRDS(PMCfits, file="PMCfits.RDS")
+  system("git add .")
+  system("git commit -m 'updating PMCfits'")
+  system("git push origin master")
 }
 
 
