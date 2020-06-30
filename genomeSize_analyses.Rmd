@@ -333,6 +333,7 @@ fitComparison <- function(data) {
   #########################################################
   ## Pairwise comparison 1. meta.nf.dd.paed (OUMV) versus BM1 ##
   #########################################################
+  tIn <- Sys.time()
   
   ## Fit the metamorphosis (OUM) model to the oum.meta data (the true data-generating model)
   fit.oum.meta.to.oum.meta.data <- OUwie(tree_meta, data[["oum.meta.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
@@ -348,9 +349,13 @@ fitComparison <- function(data) {
   ## Fit the bm1 data to the bm1 hypothesis (the true data-generating model)
   fit.bm1.to.bm1.data <- OUwie(tree_meta, data[["bm1.data"]], model=c("BM1"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
+  print(paste("Comparison #1 took", signif(Sys.time()-tIn,3)))
+  
   ##################################################################
   ## Pairwise comparison 2. meta.dd.paed (OUM) versus meta (OUM) ##
   ##################################################################
+  
+  tIn = Sys.time()
   
   ## Fit the metamorphosis (OUM) model to the oum.meta.dd.paed data
   meta.dd.paed.as.meta <- data[["oum.meta.dd.paed.data"]]
@@ -365,10 +370,12 @@ fitComparison <- function(data) {
   ## Fit the meta.dd.paed (OUM) model to the oum.meta.dd.paed data (the true data-generating model)
   fit.oum.meta.dd.paed.to.oum.meta.dd.paed.data <- OUwie(tree_meta.dd.paed, data[["oum.meta.dd.paed.data"]], model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
+  print(paste("Comparison #2 took", signif(Sys.time()-tIn,3)))
+  
   ##############################################################
   ## Pairwise comparison 3. meta.nf (OUMV) versus meta (OUM) ##
   ##############################################################
- 
+ tIn <- Sys.time()
   ## Fit the metamorphosis (OUM) model to the oumv.meta.nf data
   meta.nf.as.meta <- data[["oumv.meta.nf.data"]]
   meta.nf.as.meta[,2] <- data[["oum.meta.data"]][,2]
@@ -381,11 +388,12 @@ fitComparison <- function(data) {
   
   ## Fit the meta.nf (OUMV) model to the oumv.meta.nf data (the true data-generating model)
   fit.oumv.meta.nf.to.oumv.meta.nf.data <- OUwie(tree_meta.nf, data[["oumv.meta.nf.data"]], model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
+print(paste("Comparison #3 took", signif(Sys.time()-tIn,3)))
+  
   ###############################################################
   ## Pairwise comparison 4. meta.nf.dd.paed (OUMV) versus meta.dd.paed (OUM) ##
   ###############################################################
- 
+ tIn <- Sys.time()
   ## Fit the meta.dd.paed (OUM) model to the oumv.meta.nf.dd.paed data
   meta.nf.dd.paed.as.meta.dd.paed <- data[["oumv.meta.nf.dd.paed.data"]]
   meta.nf.dd.paed.as.meta.dd.paed[,2] <- data[["oum.meta.dd.paed.data"]][,2]
@@ -398,11 +406,12 @@ fitComparison <- function(data) {
   
   ## Fit the meta.nf.dd.paed model to the oumv.meta.nf.dd.paed data
   fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data <- OUwie(tree_meta.nf.dd.paed,data[["oumv.meta.nf.dd.paed.data"]],model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
+print(paste("Comparison #4 took", signif(Sys.time()-tIn,3)))
+  
   ##################################################################
   ## Pairwise comparison 5. meta.nf.dd.paed (OUMV) versus meta.nf (OUMV) ##
   ##################################################################
- 
+ tIn <- Sys.time()
   ## Fit the meta.nf.dd.paed model to the oumv.meta.nf data
   meta.nf.as.meta.nf.dd.paed <- data[["oumv.meta.nf.data"]]
   meta.nf.as.meta.nf.dd.paed[,2] <- data[["oumv.meta.nf.dd.paed.data"]][,2]
@@ -412,11 +421,12 @@ fitComparison <- function(data) {
   meta.nf.dd.paed.as.meta.nf <- data[["oumv.meta.nf.dd.paed.data"]]
   meta.nf.dd.paed.as.meta.nf[,2] <- data[["oumv.meta.nf.data"]][,2]
   fit.oumv.meta.nf.to.oumv.meta.nf.dd.paed.data <- OUwie(tree_meta.nf, meta.nf.dd.paed.as.meta.nf, model=c("OUMV"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
+print(paste("Comparison #5 took", signif(Sys.time()-tIn,3)))
+  
   #####################################################################
   ## Pairwise comparison 6. meta.nf.dd.paed (OUMV) versus meta.nf.dd.paed (OUM) ##
   #####################################################################
-  
+  tIn <- Sys.time()
   ## Fit the meta.nf.dd.paed hypothesis (OUM) model to the oumv.meta.nf.dd.paed data
   fit.oum.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data <- OUwie(tree_meta.nf.dd.paed,data[["oumv.meta.nf.dd.paed.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
   
@@ -425,6 +435,7 @@ fitComparison <- function(data) {
   
   ## Fit the meta.nf.dd.paed hypothesis (OUM) model to the oum.meta.nf.dd.paed data (the true data-generating model)
   fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data <- OUwie(tree_meta.nf.dd.paed,data[["oum.meta.nf.dd.paed.data"]],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+  print(paste("Comparison #6 took", signif(Sys.time()-tIn,3)))
   
   #########################################################################
 
@@ -453,6 +464,8 @@ fitComparison <- function(data) {
     fit.oumv.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data=fit.oumv.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data,
     fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data=fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data)
 }
+
+fitComparison(PMCdata[[1]])
 
 numCores <- detectCores()
 PMCfits <- vector(mode='list', length=500)
