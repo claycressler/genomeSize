@@ -11,8 +11,6 @@ self_contained: no
 knitr::opts_chunk$set(echo = TRUE,
                       dev=c('png','tiff'),
                       fig.path='figures/')
-library(ape)
-library(ouch)
 library(OUwie)
 library(tidyverse)
 library(parallel)
@@ -77,9 +75,7 @@ Here are the four different adaptive hypothesis regime paintings (Fig. \@ref(fig
 
 ```{r hyp, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Red = Metamorphosis, Green = Plethodontid metamorphosis, Blue = Paedomorphosis, Cyan = Direct development or paedomorphosis."}
 
-#png(file="~/Desktop/hypotheses.png", width=5, height=7, units='in', res=300)
-par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5))
-layout(matrix(c(rep(1,1),rep(2,1), rep(3,1), rep(4,2)), 1, 5, byrow=TRUE))
+par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1, 5))
 plot(tree_meta, show.tip.label=FALSE)
 mtext("meta", side=3, line=0, cex=0.75)
 nodelabels(pch=21, bg=tree_meta$node.label)
@@ -92,10 +88,18 @@ plot(tree_meta.dd.paed, show.tip.label=FALSE)
 mtext("meta-paed-dd", side=3, line=0, cex=0.75)
 nodelabels(pch=21, bg=tree_meta.dd.paed$node.label)
 
-plot(tree_meta.nf.dd.paed)
-mtext("meta-nf-paed-dd            ", side=3, line=0, cex=0.75)
+par(mar=c(0.5,0.5,2,0))
+plot(tree_meta.nf.dd.paed, show.tip.label=FALSE)
+mtext("meta-nf-paed-dd", side=3, line=0, cex=0.75)
 nodelabels(pch=21, bg=tree_meta.nf.dd.paed$node.label)
-#dev.off()
+
+par(mar=c(0.5,0,2,0))
+plot.new()
+plot.window(xlim=c(0,1), ylim=c(0,1))
+for (i in 1:length(tree_meta$tip.label))
+    text(0, 1-(i-1)/(length(tree_meta$tip.label)-1),
+         paste(strsplit(tree_meta$tip.label[1],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
+         cex=0.65, adj=0)
 
 ```
 I will proceed with fitting the following models: a standard Brownian motion model (BM1), a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where only $\theta$ varies across regimes (OUM), an OU model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
@@ -171,7 +175,10 @@ data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names
            sigma = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% sqrt %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
            theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
            ) %>% 
-  arrange(AICc)
+    arrange(AICc) -> aics
+rownames(aics) <- as.character(1:nrow(aics))
+aics
+                      
 ```
 
 To help interpret the biological implications of the parameter values of the best-fitting model, it is useful to calculate the values of the deterministic and stochastic terms of the OU model ($\alpha (\theta-X)$ and $\sigma$).
@@ -479,7 +486,7 @@ delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.oum.meta.data"]]
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 
 ```
-Using the same methodology, we can calculate the approximate p-value and power for the second test, between **meta-nf** (OUMV) versus *meta** (OUM). This tests whether distinguishing between different metamorphosis strategies is supported. Here the p-value is 0.032 and the power is 0.796, implying we can confidently reject the hypothesis that the simpler model produces a better fit to the data than the more complicated model that distinguishes among metamorphosing life histories. See Fig. \@ref(fig:pmcResults)B for a visual depiction of these results.
+Using the same methodology, we can calculate the approximate p-value and power for the second test, between *meta-nf* (OUMV) versus *meta* (OUM). This tests whether distinguishing between different metamorphosis strategies is supported. Here the p-value is 0.032 and the power is 0.796, implying we can confidently reject the hypothesis that the simpler model produces a better fit to the data than the more complicated model that distinguishes among metamorphosing life histories. See Fig. \@ref(fig:pmcResults)B for a visual depiction of these results.
 
 ```{r}
 delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.nf.OUMV"]]$loglik)
@@ -492,7 +499,7 @@ sum(delta < delta.dist)/length(delta.dist)
 ## power
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 ```
-Using the same methodology, we can calculate the approximate p-value and power for the third test, **meta-dd-paed** (OUM) versus **meta** (OUM). This tests whether more finely subdividing non-metamorphosing strategies into direct development and paedomorphosis provides a better fit to the data than simply between distinguishing between metamorphosing and non-metamorphosing strategies. Here the p-value is 0.096 and the power is 0.39, suggesting that the addition of direct development and paedomorphosis as separate constraint regimes does not really improve the explanatory power of the model. See Fig. \@ref(fig:pmcResults)C for a visual depiction of these results.
+Using the same methodology, we can calculate the approximate p-value and power for the third test, *meta-dd-paed* (OUM) versus *meta* (OUM). This tests whether more finely subdividing non-metamorphosing strategies into direct development and paedomorphosis provides a better fit to the data than simply between distinguishing between metamorphosing and non-metamorphosing strategies. Here the p-value is 0.096 and the power is 0.39, suggesting that the addition of direct development and paedomorphosis as separate constraint regimes does not really improve the explanatory power of the model. See Fig. \@ref(fig:pmcResults)C for a visual depiction of these results.
 
 ```{r}
 delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.dd.paed.OUM"]]$loglik)
@@ -506,7 +513,7 @@ sum(delta < delta.dist)/length(delta.dist)
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 ```
 
-We also calculate the p-value and power for the fourth test, **meta-nf-dd-paed** (OUMV) versus **meta-nf** (OUMV). This tests whether allowing separate regimes for direct developers and paedomorphs is supported, once you have accounted for feeding and non-feeding metamorphosis. For this comparison, the p-value is 0.1 and the power is 0.54, indicating that there is some support for the more complex model, although it is not strong. See Fig. \@ref(fig:pmcResults)D for a visual depiction of these results.
+We also calculate the p-value and power for the fourth test, *meta-nf-dd-paed* (OUMV) versus *meta-nf* (OUMV). This tests whether allowing separate regimes for direct developers and paedomorphs is supported, once you have accounted for feeding and non-feeding metamorphosis. For this comparison, the p-value is 0.1 and the power is 0.54, indicating that there is some support for the more complex model, although it is not strong. See Fig. \@ref(fig:pmcResults)D for a visual depiction of these results.
 
 ```{r}
 delta <- -2*(results[["meta.nf.OUMV"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
@@ -520,7 +527,7 @@ sum(delta < delta.dist)/length(delta.dist)
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 ```
 
-We also calculate the p-value and power for the fifth test, **meta-nf-dd-paed** (OUMV) versus **meta-dd-paed** (OUM). This tests whether separate regimes for feeding and non-feeding metamorphosis are supported, after accounting for the two non-metamorphosing strategies. Given the results above, it is unsurprising that the more complicated model is strongly supported, with a p-value of 0.03 and power of 0.88. See Fig. \@ref(fig:pmcResults)E for a visual depiction of these results.
+We also calculate the p-value and power for the fifth test, *meta-nf-dd-paed* (OUMV) versus *meta-dd-paed* (OUM). This tests whether separate regimes for feeding and non-feeding metamorphosis are supported, after accounting for the two non-metamorphosing strategies. Given the results above, it is unsurprising that the more complicated model is strongly supported, with a p-value of 0.03 and power of 0.88. See Fig. \@ref(fig:pmcResults)E for a visual depiction of these results.
 
 ```{r}
 delta <- -2*(results[["meta.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
@@ -534,7 +541,7 @@ sum(delta < delta.dist)/length(delta.dist)
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 ```
 
-Finally, just to cross all the t's and dot all the i's, we can calculate the p-value and power for the sixth test, **meta-nf-dd-paed** (OUMV) versus **meta-nf-dd-paed** (OUM), which tests whether multiple $\sigma$ values is well-supported by the data. Here the p-value is 0.088 and the power is 0.67, suggesting fairly good support for the more complex model. See Fig. \@ref(fig:pmcResults)F for a visual depiction of these results.
+Finally, just to cross all the t's and dot all the i's, we can calculate the p-value and power for the sixth test, *meta-nf-dd-paed* (OUMV) versus *meta-nf-dd-paed* (OUM), which tests whether multiple $\sigma$ values is well-supported by the data. Here the p-value is 0.088 and the power is 0.67, suggesting fairly good support for the more complex model. See Fig. \@ref(fig:pmcResults)F for a visual depiction of these results.
 
 ```{r}
 delta <- -2*(results[["meta.nf.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
@@ -548,8 +555,8 @@ sum(delta < delta.dist)/length(delta.dist)
 sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
 ```
 
-```{r pmcResults, echo=FALSE, fig.height=9, fig.width=6, fig.cap="Comparing the distributions of the test statistic when the data is generated by simpler (light gray) or more complex (dark gray) evolutionary models. The dashed line gives the actual value of the test statistic for the true data."}
-par(mar=c(5,5,1,1), oma=rep(0,4), mfrow=c(3,3))
+```{r pmcResults, echo=FALSE, fig.height=7.5, fig.width=10, fig.cap="Comparing the distributions of the test statistic when the data is generated by simpler (light gray) or more complex (dark gray) evolutionary models. The dashed line gives the actual value of the test statistic for the true data."}
+par(mar=c(5,5,1,1), oma=rep(0,4), mfrow=c(2,3))
 ## BM1 versus meta.nf.dd.paed OUMV
 delta <- -2*(results[["BM1"]]$loglik - results[["meta.OUM"]]$loglik)
 delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.bm1.data"]]$loglik) %>% unlist) - 
@@ -576,7 +583,7 @@ delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.nf.OUMV"]]$loglik)
 delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
                     (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oum.meta.data"]]$loglik) %>% unlist))
 delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oumv.meta.nf.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
+                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
 d1 <- density(delta.dist)
 d2 <- density(delta.dist.2)
 plot.new()
@@ -683,14 +690,14 @@ legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "F", bty='n', xjust=0.5, yjust=
 ## Analyses with a different evolutionary history for plethodontids
 In the above analyses, the ancestor of all plethodontids is assumed to be a metamorphosing amphibian. However, there is some debate about this, and some researchers think that this ancestor was actually a direct developer. As such, we want to make sure that the conlusions drawn above are unaffected by this assumption. This requires modifying all three adaptive hypotheses to "repaint" the ancestral node.
 
-```{r, echo=FALSE}
+```{r hyp_alt_history, echo=FALSE, fig.width=10, fig.height=10, fig.cap="The four regime paintings with the ancestral node for plethodontids set as a direct developer, rather than a metamorphoser."}
 # which(tree_meta.nf.dd.paed$node.label=="3")
 # [1] 23 40 41 42 45 46 81 82 83 85 86 87 88
 tree_meta.nf.dd.paed2 <- tree_meta.nf.dd.paed
 tree_meta.nf.dd.paed2$node.label[23] <- "1"
 
 tree_meta.nf2 <- tree_meta.nf
-tree_meta.nf.dd.paed2$node.label[23] <- "5"
+tree_meta.nf2$node.label[23] <- "5"
 
 tree_meta.dd.paed2 <- tree_meta.dd.paed
 tree_meta.dd.paed2$node.label[23] <- "1"
@@ -698,14 +705,33 @@ tree_meta.dd.paed2$node.label[23] <- "1"
 tree_meta2 <- tree_meta
 tree_meta2$node.label[23] <- "5"
 
-# plot(tree_meta.nf.dd.paed2)
-# nodelabels(pch=21, bg=tree_meta.nf.dd.paed2$node.label)
-# 
-# plot(tree_meta.dd.paed2)
-# nodelabels(pch=21, bg=tree_meta.dd.paed2$node.label)
-# 
-# plot(tree_meta2)
-# nodelabels(pch=21, bg=tree_meta2$node.label)
+par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1,5))
+plot(tree_meta2, show.tip.label=FALSE)
+mtext("meta", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_meta$node.label)
+
+plot(tree_meta.nf2, show.tip.label=FALSE)
+mtext("meta-nf", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_meta.nf$node.label)
+
+plot(tree_meta.dd.paed2, show.tip.label=FALSE)
+mtext("meta-paed-dd", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_meta.dd.paed$node.label)
+
+par(mar=c(0.5,0.5,2,0))
+plot(tree_meta.nf.dd.paed2, show.tip.label=FALSE)
+mtext("meta-nf-paed-dd", side=3, line=0, cex=0.75)
+nodelabels(pch=21, bg=tree_meta.nf.dd.paed$node.label)
+
+par(mar=c(0.5,0,2,0))
+plot.new()
+plot.window(xlim=c(0,1), ylim=c(0,1))
+for (i in 1:length(tree_meta$tip.label))
+    text(0, 1-(i-1)/(length(tree_meta$tip.label)-1),
+         paste(strsplit(tree_meta$tip.label[1],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
+         cex=0.65, adj=0)
+
+
 
 ```
 
@@ -766,7 +792,7 @@ saveRDS(results, "all_model_fits_alt_history.RDS")
 results <- readRDS("all_model_fits_alt_history.RDS")
 ```
 
-You can see that the order of the models is completely unaffected by this change, which makes sense, given how ancient this branching point is. The best-fitting model remains the OU model with 4 selective regimes (1=direct development, 2=metamorphosis, 3=metamorphosing plethodontids, 4=paedomorphosis), with separate drift parameters for each regime, although the model with a single drift parameter has very similar AICc score. Here are the AICc values and parameter estimates for each of the models.
+You can see that changing this ancestral node has absolutely no effect on the model fitting results, which is unsurpising given how deep in the tree this switch occurs, and how short the branch is that is affected by the change.
 
 ```{r, echo=FALSE}
 data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names, 
