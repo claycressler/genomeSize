@@ -70,6 +70,113 @@ data.meta.nf.dd.paed <- tt[c("labels", "meta.nf.dd.paed", "genomesize")]
 
 ```
 
+```{r hyp2, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Orange = Metamorphosis, Blue green = Non-feeding metamorphosis, Blue = Paedomorphosis, Reddish purple = Direct development or paedomorphosis."}
+library(ouch)
+dat1 <- read.csv("tree1.dat.csv")
+tree1 <- read.nexus("av_ultra_fulldataset.nex")
+tree <- ape2ouch(tree1)
+dat <- dat1
+rownames(dat) <- dat$nodes
+regimes <- dat[c("meta", "meta.dd.paed", "meta.nf.dd.paed","meta.nf")]
+gsz <- log(dat['genomesize'])
+
+regimes2 <- regimes
+regimes2[regimes2=="D"] <- 1
+regimes2[regimes2=="M"] <- 2
+regimes2[regimes2=="Mpleth"] <- 3
+regimes2[regimes2=="P"] <- 4
+regimes2[regimes2=="x"] <- 5
+
+arrange.tree <- function (root, anc) {
+  k <- which(anc==root)
+  n <- length(k)
+  reltree <- rep(0,length(anc))
+  reltree[root] <- 0.5
+  p <- list()
+  if (n > 0) {
+    m <- rep(0,n)
+    for (j in 1:n) {
+      p[[j]] <- arrange.tree(k[j],anc)
+      m[j] <- length(which(p[[j]] != 0))
+    }
+    cm <- c(0,cumsum(m))
+    for (j in 1:n) {
+      reltree <- reltree + (cm[j]/sum(m))*(p[[j]] != 0) + (m[j]/sum(m))*p[[j]]
+    }
+  }
+  reltree
+}
+
+is.root.node <- function (anc) {
+  is.na(anc)
+}
+
+palette <- c("#000000", "#E69F00","#009E73", "#0072B2", "#CC79A7")
+x <- tree
+rx <- range(x@times,na.rm=T)
+rxd <- 0.1*diff(rx)
+anc <- x@anc.numbers
+root <- which(is.root.node(anc))
+
+## Plot each painting separately
+par(mfrow=c(1,6), mar=c(1,0.5,0.5,0.5), oma=rep(0,4))
+tiplabels <- c(0,"")
+for (reg in c("meta","meta.nf","meta.dd.paed","meta.nf.dd.paed")) {
+  regimes <- regimes2[reg]
+  regimes <- regimes[x@nodes,1]
+  levs <- levels(as.factor(regimes))
+  for (r in levs) {
+    yy <- arrange.tree(root,anc)
+    xx <- x@times
+    f <- which(!is.root.node(anc) & regimes == r)
+    pp <- anc[f]
+    X <- array(data=c(xx[f], xx[pp], rep(NA,length(f))),dim=c(length(f),3))
+    Y <- array(data=c(yy[f], yy[pp], rep(NA,length(f))),dim=c(length(f),3))
+    oz <- array(data=1,dim=c(2,1))
+    X <- kronecker(t(X),oz)
+    Y <- kronecker(t(Y),oz)
+    X <- X[2:length(X)]
+    Y <- Y[1:(length(Y)-1)]
+    C <- rep(palette[as.numeric(r)],length(X))
+    if (r > levs[1]) par(new=T)
+    par(yaxt='n', bty="n", xaxt='n')
+    plot(X,Y,type='l',col=C,xlab='time',ylab='',xlim=rx+c(-rxd,rxd),ylim=c(0,1))
+    if (reg=="meta.nf.dd.paed")
+      ## record the y position and name of every node
+      tiplabels <- rbind(tiplabels, 
+                         cbind(Y[seq(1,length(Y),6)],x@nodelabels[f]))
+  }
+  mtext(side=3, line=-1.5, gsub("\\.", "\\-", reg), cex=0.9)
+}
+## Plot the names and genome sizes
+## The result of this block of code is a dataframe with the y position of each tip, the species at that tip, and the genome size of 
+tiplabels <- as.data.frame(tiplabels[-which(tiplabels[,2]==""),])
+colnames(tiplabels) <- c("yval", "name")
+tiplabels$yval <- as.numeric(as.character(tiplabels$yval))
+tiplabels$name <- sapply(tiplabels$name, 
+                         function(n) paste(strsplit(n, "\\_")[[1]][1], strsplit(n, "\\_")[[1]][2]))
+tree2 <- as(tree,"data.frame") %>% merge(., dat[,c(2,5)]) %>% drop_na(.)
+tree2$name <- sapply(tree2$labels, 
+                         function(n) paste(strsplit(n, "\\_")[[1]][1], strsplit(n, "\\_")[[1]][2]))
+tiplabels <- merge(tiplabels, tree2[,c("name","genomesize")])
+
+## plot genome sizes
+par(xaxt='s', mar=c(1,0,0.5,0.5))
+plot.new()
+plot.window(xlim=c(0, max(tiplabels$genomesize)), ylim=c(0,1))
+axis(1, line=-2)
+for (i in 1:nrow(tiplabels)) {
+  y <- tiplabels$yval[i] 
+  x <- tiplabels$genomesize[i]
+  rect(0, y-0.0025, x, y+0.0025, col=2)
+}
+mtext("Genome size", side=3, line=-1.5, cex=0.8)
+
+plot.new()
+text(rep(0,length(tiplabels)), tiplabels$yval, tiplabels$name, cex=0.8, adj=0)
+
+
+```
 
 Here are the four different adaptive hypothesis regime paintings (Fig. \@ref(fig:hyp)). 
 
