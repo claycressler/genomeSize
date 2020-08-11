@@ -182,30 +182,40 @@ Here are the four different adaptive hypothesis regime paintings (Fig. \@ref(fig
 
 ```{r hyp, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Red = Metamorphosis, Green = Plethodontid metamorphosis, Blue = Paedomorphosis, Cyan = Direct development or paedomorphosis."}
 
-par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1, 5))
+par(mar=c(1,0.5,1,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1, 6))
 plot(tree_meta, show.tip.label=FALSE)
-mtext("meta", side=3, line=0, cex=0.75)
+mtext("meta", side=3, line=-1, cex=0.75)
 nodelabels(pch=21, bg=tree_meta$node.label)
 
 plot(tree_meta.nf, show.tip.label=FALSE)
-mtext("meta-nf", side=3, line=0, cex=0.75)
+mtext("meta-nf", side=3, line=-1, cex=0.75)
 nodelabels(pch=21, bg=tree_meta.nf$node.label)
 
 plot(tree_meta.dd.paed, show.tip.label=FALSE)
-mtext("meta-paed-dd", side=3, line=0, cex=0.75)
+mtext("meta-paed-dd", side=3, line=-1, cex=0.75)
 nodelabels(pch=21, bg=tree_meta.dd.paed$node.label)
 
-par(mar=c(0.5,0.5,2,0))
+par(mar=c(1,0.5,1,0))
 plot(tree_meta.nf.dd.paed, show.tip.label=FALSE)
-mtext("meta-nf-paed-dd", side=3, line=0, cex=0.75)
+mtext("meta-nf-paed-dd", side=3, line=-1, cex=0.75)
 nodelabels(pch=21, bg=tree_meta.nf.dd.paed$node.label)
 
-par(mar=c(0.5,0,2,0))
+par(mar=c(1,0,1,0))
+plot.new()
+plot.window(xlim=c(0,max(exp(data.meta$genomesize))), ylim=c(0,1))
+axis(1, line=-2)
+for (i in 1:length(tree_meta$tip.label))
+  lines(c(0, exp(data.meta[data.meta$labels==tree_meta$tip.label[i],'genomesize'])),
+        rep(1-(i-1)/(length(tree_meta$tip.label)-1),2),
+        col=2, lwd=3)
+mtext("Genome size (pg)", side=3, line=-1, cex=0.75)
+
+par(mar=c(1,0,1,0))
 plot.new()
 plot.window(xlim=c(0,1), ylim=c(0,1))
 for (i in 1:length(tree_meta$tip.label))
     text(0, 1-(i-1)/(length(tree_meta$tip.label)-1),
-         paste(strsplit(tree_meta$tip.label[1],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
+         paste(strsplit(tree_meta$tip.label[i],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
          cex=0.65, adj=0)
 
 ```
