@@ -225,9 +225,11 @@ I will proceed with fitting the following models: a standard Brownian motion mod
 set.seed(1234321)
 
 bm.ouwie <- OUwie(tree_meta,data.meta,model=c("BM1"),root.station=FALSE,scaleHeight=TRUE,quiet=TRUE)
+#bm.ouwie2 <- OUwie(tree_meta,data.meta,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE,quiet=TRUE)
 
 ## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
 meta.OUM <- OUwie(tree_meta,data.meta,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+#meta.OUM2 <- OUwie(tree_meta,data.meta,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 meta.BMS <- OUwie(tree_meta,data.meta,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 meta.OUMA <- OUwie(tree_meta,data.meta,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 meta.OUMV <- OUwie(tree_meta,data.meta,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
