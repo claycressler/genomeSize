@@ -1,0 +1,220 @@
+#NEXUS
+begin taxa;
+	dimensions ntax=118;
+	taxlabels
+	Ambystoma_californiense
+	Ambystoma_laterale
+	Ambystoma_mexicanum
+	Ambystoma_texanum
+	Ambystoma_tigrinum
+	Amphiuma_means
+	Andrias_davidianus
+	Andrias_japonicus
+	Aneides_aeneus
+	Aneides_ferreus
+	Aneides_flavipunctatus
+	Aneides_hardii
+	Aneides_lugubris
+	Batrachoseps_attenuatus
+	Batrachoseps_bramei
+	Batrachoseps_campi
+	Batrachoseps_gabrieli
+	Batrachoseps_gavilanensis
+	Batrachoseps_gregarius
+	Batrachoseps_incognitus
+	Batrachoseps_kawia
+	Batrachoseps_luciae
+	Batrachoseps_major
+	Batrachoseps_nigriventris
+	Bolitoglossa_cerroensis
+	Bolitoglossa_colonnea
+	Bolitoglossa_cuchumatana
+	Bolitoglossa_dofleini
+	Bolitoglossa_dunni
+	Bolitoglossa_engelhardti
+	Bolitoglossa_flavimembris
+	Bolitoglossa_hartwegi
+	Bolitoglossa_helmrichi
+	Bolitoglossa_lincolni
+	Bolitoglossa_macrinii
+	Bolitoglossa_mexicana
+	Bolitoglossa_morio
+	Bolitoglossa_platydactyla
+	Bolitoglossa_riletti
+	Bolitoglossa_robusta
+	Bolitoglossa_rostrata
+	Bolitoglossa_striatula
+	Bolitoglossa_stuarti
+	Bolitoglossa_subpalmata
+	Bolitoglossa_zapoteca
+	Chiropterotriton_magnipes
+	Chiropterotriton_orculus
+	Chiropterotriton_priscus
+	Cryptotriton_alvarezdeltoroi
+	Desmognathus_fuscus
+	Desmognathus_monticola
+	Desmognathus_ochrophaeus
+	Desmognathus_quadramaculatus
+	Desmognathus_wrighti
+	Dicamptodon_ensatus
+	Ensatina_eschscholtzii
+	Eurycea_bislineata
+	Eurycea_longicauda
+	Eurycea_lucifuga
+	Eurycea_neotenes
+	Eurycea_quadridigitata
+	Eurycea_tridentifera
+	Eurycea_wilderae
+	Gyrinophilus_porphyriticus
+	Hemidactylium_scutatum
+	Hydromantes_genei
+	Hydromantes_italicus
+	Hydromantes_platycephalus
+	Hynobius_naevius
+	Karsenia_koreana
+	Necturus_maculosus
+	Nyctanolis_pernix
+	Oedipina_poelzi
+	Oedipina_pseudouniformis
+	Oedipina_uniformis
+	Onychodactylus_fischeri
+	Paradactylodon_mustersi
+	Paramesotriton_hongkongensis
+	Plethodon_cinereus
+	Plethodon_dunni
+	Plethodon_elongatus
+	Plethodon_glutinosus
+	Plethodon_ouachitae
+	Plethodon_richmondi
+	Plethodon_vandykei
+	Plethodon_vehiculum
+	Plethodon_welleri
+	Plethodon_yonahlossee
+	Proteus_anguinus
+	Pseudobranchus_striatus
+	Pseudoeurycea_altamontana
+	Pseudoeurycea_bellii
+	Pseudoeurycea_brunnata
+	Pseudoeurycea_cephalica
+	Pseudoeurycea_conanti
+	Pseudoeurycea_juarezi
+	Pseudoeurycea_leprosa
+	Pseudoeurycea_lineola
+	Pseudoeurycea_longicauda
+	Pseudoeurycea_melanomolga
+	Pseudoeurycea_rex
+	Pseudoeurycea_robertsi
+	Pseudoeurycea_saltator
+	Pseudoeurycea_smithi
+	Pseudoeurycea_werleri
+	Pseudotriton_montanus
+	Pseudotriton_ruber
+	Ranodon_sibiricus
+	Rhyacotriton_olympicus
+	Salamandrella_keyserlingii
+	Siren_intermedia
+	Siren_lacertina
+	Triturus_carnifex
+	Triturus_cristatus
+	Triturus_dobrogicus
+	Triturus_karelinii
+	Triturus_marmoratus
+	Triturus_pygmaeus
+;
+end;
+
+begin trees;
+	tree tree_1 = [&R] (((((((((((((((((((Bolitoglossa_flavimembris[&!color=#000000]:6.153874,Bolitoglossa_morio[&!color=#000000]:6.153874)[&!color=#000000]:5.987062,Bolitoglossa_dunni[&!color=#000000]:12.140936)[&!color=#000000]:6.471875,Bolitoglossa_lincolni[&!color=#000000]:18.612811)[&!color=#000000]:5.960538,Bolitoglossa_dofleini[&!color=#000000]:24.573348)[&!color=#000000]:1.805553,(((Bolitoglossa_cuchumatana[&!color=#000000]:3.166771,Bolitoglossa_helmrichi[&!color=#000000]:3.166771)[&!color=#000000]:5.68327,Bolitoglossa_rostrata[&!color=#000000]:8.850041)[&!color=#000000]:4.876038,Bolitoglossa_engelhardti[&!color=#000000]:13.726079)[&!color=#000000]:12.652822)[&!color=#000000]:1.831743,((Bolitoglossa_zapoteca[&!color=#000000]:12.412827,Bolitoglossa_riletti[&!color=#000000]:12.412827)[&!color=#000000]:3.818803,Bolitoglossa_macrinii[&!color=#000000]:16.23163)[&!color=#000000]:11.979014)[&!color=#000000]:4.582624,((((Bolitoglossa_mexicana[&!color=#000000]:11.406518,Bolitoglossa_striatula[&!color=#000000]:11.406518)[&!color=#000000]:5.927213,Bolitoglossa_platydactyla[&!color=#000000]:17.333731)[&!color=#000000]:9.843964,(Bolitoglossa_hartwegi[&!color=#000000]:14.240109,Bolitoglossa_stuarti[&!color=#000000]:14.240109)[&!color=#000000]:12.937585)[&!color=#000000]:4.323159,((Bolitoglossa_cerroensis[&!color=#000000]:19.249263,Bolitoglossa_subpalmata[&!color=#000000]:19.249263)[&!color=#000000]:4.98903,(Bolitoglossa_robusta[&!color=#000000]:14.995896,Bolitoglossa_colonnea[&!color=#000000]:14.995896)[&!color=#000000]:9.242397)[&!color=#000000]:7.26256)[&!color=#000000]:1.292414)[&!color=#000000]:9.122404,(((((((Pseudoeurycea_altamontana[&!color=#000000]:1.572239,Pseudoeurycea_robertsi[&!color=#000000]:1.572239)[&!color=#000000]:1.637182,Pseudoeurycea_longicauda[&!color=#000000]:3.209421)[&!color=#000000]:2.637077,Pseudoeurycea_melanomolga[&!color=#000000]:5.846498)[&!color=#000000]:2.330454,Pseudoeurycea_smithi[&!color=#000000]:8.176952)[&!color=#000000]:2.448896,(Pseudoeurycea_brunnata[&!color=#000000]:7.722858,Pseudoeurycea_rex[&!color=#000000]:7.722858)[&!color=#000000]:2.902989)[&!color=#000000]:11.900403,(((Pseudoeurycea_lineola[&!color=#000000]:13.560367,Pseudoeurycea_leprosa[&!color=#000000]:13.560367)[&!color=#000000]:4.117262,(Pseudoeurycea_werleri[&!color=#000000]:12.002254,Pseudoeurycea_conanti[&!color=#000000]:12.002254)[&!color=#000000]:5.675375)[&!color=#000000]:2.817508,(Pseudoeurycea_saltator[&!color=#000000]:0.841912,Pseudoeurycea_juarezi[&!color=#000000]:0.841912)[&!color=#000000]:19.653224)[&!color=#000000]:2.031113)[&!color=#000000]:6.361851,(Pseudoeurycea_cephalica[&!color=#000000]:21.439682,Pseudoeurycea_bellii[&!color=#000000]:21.439682)[&!color=#000000]:7.448419)[&!color=#000000]:13.027571)[&!color=#000000]:18.693148,((((Oedipina_poelzi[&!color=#000000]:14.129228,Oedipina_uniformis[&!color=#000000]:14.129228)[&!color=#000000]:2.138511,Oedipina_pseudouniformis[&!color=#000000]:16.267739)[&!color=#000000]:35.784867,Nyctanolis_pernix[&!color=#000000]:52.052606)[&!color=#000000]:5.059949,(((Chiropterotriton_priscus[&!color=#000000]:26.418454,Chiropterotriton_magnipes[&!color=#000000]:26.418454)[&!color=#000000]:5.394055,Chiropterotriton_orculus[&!color=#000000]:31.812508)[&!color=#000000]:17.280379,Cryptotriton_alvarezdeltoroi[&!color=#000000]:49.092887)[&!color=#000000]:8.019668)[&!color=#000000]:3.496265)[&!color=#000000]:6.376708,(((((((Batrachoseps_incognitus[&!color=#000000]:7.574483,Batrachoseps_major[&!color=#000000]:7.574483)[&!color=#000000]:2.152628,Batrachoseps_gavilanensis[&!color=#000000]:9.727111)[&!color=#000000]:1.33829,Batrachoseps_luciae[&!color=#000000]:11.0654)[&!color=#000000]:3.517015,Batrachoseps_gabrieli[&!color=#000000]:14.582416)[&!color=#000000]:5.640516,(((Batrachoseps_bramei[&!color=#000000]:3.591168,Batrachoseps_gregarius[&!color=#000000]:3.591168)[&!color=#000000]:1.532129,Batrachoseps_nigriventris[&!color=#000000]:5.123296)[&!color=#000000]:7.685434,Batrachoseps_kawia[&!color=#000000]:12.80873)[&!color=#000000]:7.414201)[&!color=#000000]:6.10177,Batrachoseps_attenuatus[&!color=#000000]:26.324701)[&!color=#000000]:24.029635,Batrachoseps_campi[&!color=#000000]:50.354336)[&!color=#000000]:16.631192)[&!color=#000000]:1.834255,((((Eurycea_lucifuga[&!color=#008000]:8.511232,Eurycea_longicauda[&!color=#008000]:8.511232)[&!color=#008000]:9.205913,(Eurycea_bislineata[&!color=#008000]:10.03195,Eurycea_wilderae[&!color=#008000]:10.03195)[&!color=#008000]:7.685195)[&!color=#008000]:1.908927,((Eurycea_tridentifera[&!color=#0000ff]:2.652192,Eurycea_neotenes[&!color=#0000ff]:2.652192)[&!color=#0000ff]:12.488326,Eurycea_quadridigitata[&!color=#008000]:15.140518)[&!color=#008000]:4.485555)[&!color=#008000]:18.375902,((Pseudotriton_ruber[&!color=#008000]:12.087492,Pseudotriton_montanus[&!color=#008000]:12.087492)[&!color=#008000]:7.692903,Gyrinophilus_porphyriticus[&!color=#008000]:19.780395)[&!color=#008000]:18.221579)[&!color=#008000]:30.817815)[&!color=#008000]:10.937013,Hemidactylium_scutatum[&!color=#008000]:79.756807)[&!color=#008000]:9.417121,((((((((Aneides_flavipunctatus[&!color=#000000]:19.517212,Aneides_ferreus[&!color=#000000]:19.517212)[&!color=#000000]:6.465537,Aneides_lugubris[&!color=#000000]:25.982749)[&!color=#000000]:9.689513,Aneides_hardii[&!color=#000000]:35.672261)[&!color=#000000]:10.174837,Aneides_aeneus[&!color=#000000]:45.847098)[&!color=#000000]:14.326225,((((Desmognathus_ochrophaeus[&!color=#008000]:18.54747,Desmognathus_fuscus[&!color=#008000]:18.54747)[&!color=#008000]:0.860288,Desmognathus_monticola[&!color=#008000]:19.407758)[&!color=#008000]:6.862832,Desmognathus_quadramaculatus[&!color=#008000]:26.27059)[&!color=#008000]:11.444917,Desmognathus_wrighti[&!color=#000000]:37.715507)[&!color=#000000]:22.457816)[&!color=#000000]:4.711401,Ensatina_eschscholtzii[&!color=#000000]:64.884723)[&!color=#000000]:2.441074,(((((Plethodon_ouachitae[&!color=#000000]:15.375139,Plethodon_glutinosus[&!color=#000000]:15.375139)[&!color=#000000]:4.007709,Plethodon_yonahlossee[&!color=#000000]:19.382848)[&!color=#000000]:11.110342,Plethodon_welleri[&!color=#000000]:30.49319)[&!color=#000000]:5.120623,(Plethodon_cinereus[&!color=#000000]:13.884251,Plethodon_richmondi[&!color=#000000]:13.884251)[&!color=#000000]:21.729563)[&!color=#000000]:20.098773,(((Plethodon_dunni[&!color=#000000]:21.004283,Plethodon_vehiculum[&!color=#000000]:21.004283)[&!color=#000000]:16.277815,Plethodon_elongatus[&!color=#000000]:37.282098)[&!color=#000000]:6.209477,Plethodon_vandykei[&!color=#000000]:43.491575)[&!color=#000000]:12.221012)[&!color=#000000]:11.613211)[&!color=#000000]:5.239788,(((Hydromantes_genei[&!color=#000000]:22.893659,Hydromantes_italicus[&!color=#000000]:22.893659)[&!color=#000000]:20.373332,Hydromantes_platycephalus[&!color=#000000]:43.266991)[&!color=#000000]:25.579527,Karsenia_koreana[&!color=#000000]:68.846518)[&!color=#000000]:3.719068)[&!color=#000000]:16.608329)[&!color=#000000]:32.71175,Amphiuma_means[&!color=#0000ff]:121.885679)[&!color=#ff8000]:15.411383,Rhyacotriton_olympicus[&!color=#ff8000]:137.297062)[&!color=#ff8000]:14.937964,(Proteus_anguinus[&!color=#0000ff]:114.35281,Necturus_maculosus[&!color=#0000ff]:114.35281)[&!color=#0000ff]:37.882216)[&!color=#ff8000]:11.918928,((((((Triturus_cristatus[&!color=#ff8000]:5.483113,Triturus_dobrogicus[&!color=#ff8000]:5.483113)[&!color=#ff8000]:1.001833,Triturus_karelinii[&!color=#ff8000]:6.484947)[&!color=#ff8000]:0.658034,Triturus_carnifex[&!color=#ff8000]:7.142981)[&!color=#ff8000]:9.642139,(Triturus_marmoratus[&!color=#ff8000]:4.032739,Triturus_pygmaeus[&!color=#ff8000]:4.032739)[&!color=#ff8000]:12.752381)[&!color=#ff8000]:25.740128,Paramesotriton_hongkongensis[&!color=#ff8000]:42.525248)[&!color=#ff8000]:105.697194,(((((Ambystoma_tigrinum[&!color=#ff8000]:5.796869,Ambystoma_mexicanum[&!color=#ff8000]:5.796868)[&!color=#ff8000]:3.388724,Ambystoma_californiense[&!color=#ff8000]:9.185593)[&!color=#ff8000]:8.846743,Ambystoma_texanum[&!color=#ff8000]:18.032335)[&!color=#ff8000]:2.59087,Ambystoma_laterale[&!color=#ff8000]:20.623205)[&!color=#ff8000]:77.642135,Dicamptodon_ensatus[&!color=#ff8000]:98.265345)[&!color=#ff8000]:49.957105)[&!color=#ff8000]:15.931505)[&!color=#ff8000]:17.975868,((Siren_lacertina[&!color=#0000ff]:17.946582,Siren_intermedia[&!color=#0000ff]:17.946582)[&!color=#0000ff]:33.376795,Pseudobranchus_striatus[&!color=#0000ff]:51.323377)[&!color=#0000ff]:130.806446)[&!color=#ff8000]:13.501472,((((Ranodon_sibiricus[&!color=#ff8000]:36.465005,Paradactylodon_mustersi[&!color=#ff8000]:36.465005)[&!color=#ff8000]:13.303384,(Salamandrella_keyserlingii[&!color=#ff8000]:45.742128,Hynobius_naevius[&!color=#ff8000]:45.742129)[&!color=#ff8000]:4.02626)[&!color=#ff8000]:56.357563,Onychodactylus_fischeri[&!color=#ff8000]:106.125952)[&!color=#ff8000]:49.157876,(Andrias_davidianus[&!color=#ff8000]:9.932919,Andrias_japonicus[&!color=#ff8000]:9.932919)[&!color=#ff8000]:145.35092)[&!color=#ff8000]:40.347457)[&!color=#ff8000];
+end;
+
+begin figtree;
+	set appearance.backgroundColorAttribute="Default";
+	set appearance.backgroundColour=#ffffff;
+	set appearance.branchColorAttribute="User selection";
+	set appearance.branchColorGradient=false;
+	set appearance.branchLineWidth=2.0;
+	set appearance.branchMinLineWidth=0.0;
+	set appearance.branchWidthAttribute="Fixed";
+	set appearance.foregroundColour=#000000;
+	set appearance.hilightingGradient=false;
+	set appearance.selectionColour=#2d3680;
+	set branchLabels.colorAttribute="User selection";
+	set branchLabels.displayAttribute="Branch times";
+	set branchLabels.fontName="sansserif";
+	set branchLabels.fontSize=8;
+	set branchLabels.fontStyle=0;
+	set branchLabels.isShown=false;
+	set branchLabels.significantDigits=4;
+	set layout.expansion=0;
+	set layout.layoutType="RECTILINEAR";
+	set layout.zoom=10;
+	set legend.attribute=null;
+	set legend.fontSize=10.0;
+	set legend.isShown=false;
+	set legend.significantDigits=4;
+	set nodeBars.barWidth=4.0;
+	set nodeBars.displayAttribute=null;
+	set nodeBars.isShown=false;
+	set nodeLabels.colorAttribute="User selection";
+	set nodeLabels.displayAttribute="Node ages";
+	set nodeLabels.fontName="sansserif";
+	set nodeLabels.fontSize=8;
+	set nodeLabels.fontStyle=0;
+	set nodeLabels.isShown=false;
+	set nodeLabels.significantDigits=4;
+	set nodeShapeExternal.colourAttribute="User selection";
+	set nodeShapeExternal.isShown=false;
+	set nodeShapeExternal.minSize=10.0;
+	set nodeShapeExternal.scaleType=Width;
+	set nodeShapeExternal.shapeType=Circle;
+	set nodeShapeExternal.size=4.0;
+	set nodeShapeExternal.sizeAttribute="Fixed";
+	set nodeShapeInternal.colourAttribute="User selection";
+	set nodeShapeInternal.isShown=false;
+	set nodeShapeInternal.minSize=10.0;
+	set nodeShapeInternal.scaleType=Width;
+	set nodeShapeInternal.shapeType=Circle;
+	set nodeShapeInternal.size=4.0;
+	set nodeShapeInternal.sizeAttribute="Fixed";
+	set polarLayout.alignTipLabels=false;
+	set polarLayout.angularRange=0;
+	set polarLayout.rootAngle=0;
+	set polarLayout.rootLength=100;
+	set polarLayout.showRoot=true;
+	set radialLayout.spread=0.0;
+	set rectilinearLayout.alignTipLabels=false;
+	set rectilinearLayout.curvature=0;
+	set rectilinearLayout.rootLength=100;
+	set scale.offsetAge=0.0;
+	set scale.rootAge=1.0;
+	set scale.scaleFactor=1.0;
+	set scale.scaleRoot=false;
+	set scaleAxis.automaticScale=true;
+	set scaleAxis.fontSize=8.0;
+	set scaleAxis.isShown=false;
+	set scaleAxis.lineWidth=1.0;
+	set scaleAxis.majorTicks=1.0;
+	set scaleAxis.minorTicks=0.5;
+	set scaleAxis.origin=0.0;
+	set scaleAxis.reverseAxis=false;
+	set scaleAxis.showGrid=true;
+	set scaleBar.automaticScale=true;
+	set scaleBar.fontSize=10.0;
+	set scaleBar.isShown=true;
+	set scaleBar.lineWidth=1.0;
+	set scaleBar.scaleRange=0.0;
+	set tipLabels.colorAttribute="User selection";
+	set tipLabels.displayAttribute="Names";
+	set tipLabels.fontName="sansserif";
+	set tipLabels.fontSize=8;
+	set tipLabels.fontStyle=0;
+	set tipLabels.isShown=true;
+	set tipLabels.significantDigits=4;
+	set trees.order=false;
+	set trees.orderType="increasing";
+	set trees.rooting=false;
+	set trees.rootingType="User Selection";
+	set trees.transform=false;
+	set trees.transformType="cladogram";
+end;
+
