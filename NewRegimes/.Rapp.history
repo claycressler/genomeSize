@@ -1,0 +1,1437 @@
+regimes
+regimes <- treedat[c("meta.nf.dd.paed", "meta.nf", "meta.dd.paed", "meta")]#
+#
+regcol <- regimes#
+regcol[regcol=="x"] <- "brown"#
+regcol[regcol=="M"] <- "red"#
+regcol[regcol=="D"] <- "black"#
+regcol[regcol =="P"] <- "dodgerblue1"#
+regcol[regcol =="Mpleth"] <- "purple"
+treedat[is.na(treedat)] <- "M"
+treedat <- as(tree, "data.frame")#
+treedat <- merge(treedat, dat, by="labels", all=T)#
+rownames(treedat) <- treedat$nodes#
+#
+treedat[is.na(treedat)] <- "M"
+regimes <- treedat[c("meta.nf.dd.paed", "meta.nf", "meta.dd.paed", "meta")]#
+#
+regcol <- regimes#
+regcol[regcol=="x"] <- "brown"#
+regcol[regcol=="M"] <- "red"#
+regcol[regcol=="D"] <- "black"#
+regcol[regcol =="P"] <- "dodgerblue1"#
+regcol[regcol =="Mpleth"] <- "purple"
+plot(tree, regimes= treedat["meta"])
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= treedat["meta"])
+regimes
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes["meta"])
+mrca(tree, c("siren", "pseudobranchus"))
+mrca(tree, c("Siren", "Pseudobranchus"))
+mrca(tree, "Pseudobranchus")
+node = sapply( c("Siren", "Pseudobranchus"), function(x) grep( x, tree@nodelabels, ... ))
+node = sapply( c("Siren", "Pseudobranchus"), function(x) grep( x, tree@nodelabels))
+node
+tree@lineages[node]
+tree@lineages[node[1]]
+tree@lineages[node[[1]]]
+tree@lineages[node[[2]]]
+lapply( node, tree@lineages)
+lapply( node, function(x) tree@lineages[x])
+lin <- lapply( node, function(x) tree@lineages[x])
+sharedlin(lin)
+sharedlin(lin[[1]])
+sharedlin(lin[[2]])
+sapply( node, function(x) tree@lineages[x])
+c(node)
+unlist(node)
+node <- unlist(node)
+lin <- tt@lineages[node]
+lin <- tree@lineages[node]
+lin
+sharedlin( lin )
+mrca <- function( tt, x, ... ) {#
+#
+	if (class(x)=="character") node = sapply( x, function(x) grep( x, tt@nodelabels, ... )) else#
+		if (class(x)=="integer" | class(x)=="numeric") node = x else#
+		return("x must be character or numeric")#
+#
+    node <- unlist(node)#
+	lin <- tt@lineages[node]#
+#
+    return( sharedlin( lin )[1] )#
+}
+regcol <- regimes
+names(regcol) <- regimes
+regcol
+reg <- c("x", "M", "D", "P", "Mpleth")
+reg <- c("x", "M", "D", "P", "Mpleth")#
+names(reg) <- reg
+reg <- c("x", "M", "D", "P", "Mpleth")#
+names(reg) <- reg#
+reg[ reg=="x"] <- "brown"#
+reg[ reg=="M"] <- "red"#
+reg[ reg=="D"] <- "black"#
+reg[ reg=="P"] <- "dodgerblue1"#
+reg[ reg=="Mpleth"] <- "purple"
+reg
+mypal <- function(x) {return(reg[names(reg)])}
+mypal
+mypal()
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal)
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)
+treedat
+regimes
+regimes2 <- regimes
+names(regimes2)
+regimes2[c("meta.other", "meta.dd.paed")][regimes2[c("meta.other", "meta.dd.paed")]=="M"] <- 2#
+regimes2[regimes2=="D"] <- 1#
+regimes2[regimes2=="M"] <- 3   # mf#
+regimes2[regimes2=="Mpleth"] <- 4  #mnf#
+regimes2[regimes2=="P"] <- 5#
+regimes2[regimes2=="x"] <- 6
+regimes2[c("meta.other", "meta.dd.paed")]
+regimes2[c("meta.other", "meta.dd.paed"),regimes2[c("meta.other", "meta.dd.paed")]=="M"]
+regimes2[c("meta.other", "meta.dd.paed"),]
+regimes2[,c("meta.other", "meta.dd.paed")]
+regimes2[c("meta.other", "meta.dd.paed")]
+names(regimes2)
+regimes2[c("meta", "meta.dd.paed")]
+regimes2[c("meta", "meta.dd.paed")][regimes2[c("meta", "meta.dd.paed")]=="M"] <- 2
+regimes2
+regimes <- treedat[c("meta.nf.dd.paed", "meta.nf", "meta.dd.paed", "meta")]
+regimes
+regimes2 <- regimes#
+regimes2[c("meta", "meta.dd.paed")][regimes2[c("meta", "meta.dd.paed")]=="M"] <- 2
+regimes2
+regimes2[regimes2=="D"] <- 1#
+regimes2[regimes2=="M"] <- 3   # mf#
+regimes2[regimes2=="Mpleth"] <- 4  #mnf#
+regimes2[regimes2=="P"] <- 5#
+regimes2[regimes2=="x"] <- 6
+regimes2
+reg <- c(1:6)#
+names(reg) <- reg#
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")
+reg
+names(reg)
+reg <- c(1:6)#
+names(reg) <- reg
+reg
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")
+reg
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")#
+names(reg) <- 1:6
+reg
+mypal <- function(x) {return(reg[names(reg)])}
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes2["meta"], palette=mypal, lwd=3)
+mrca(c("Siren", "Pseudobranchus"))
+mrca(tree,c("Siren", "Pseudobranchus"))
+regimes2 <- regimes#
+regimes2[c("meta", "meta.dd.paed")][regimes2[c("meta", "meta.dd.paed")]=="M"] <- "metamorphosis"#
+regimes2[regimes2=="D"] <- "direct development"#
+regimes2[regimes2=="M"] <- "meta-feeding"   # mf#
+regimes2[regimes2=="Mpleth"] <- "meta-nonfeeding"  #mnf#
+regimes2[regimes2=="P"] <- "paedomorphosis"#
+regimes2[regimes2=="x"] <- "other"#
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")#
+names(reg) <- c("direct development", "metamorphosis", "meta-feeding", "meta-nonfeeding", "paedomorphosis", "other" )
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes2["meta"], palette=mypal, lwd=3)
+paint.clade(tree, 9, name="other", ignore.case=T, regimes2["meta"])
+regimes2["meta"]
+paint.clade(tree, 9, name="other", ignore.case=T, regimes2$meta)
+rr <- paint.clade(tree, 9, name="other", ignore.case=T, regimes2$meta)
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= rr, palette=mypal, lwd=3)
+names(rr) <- rownames(regimes2)
+rr
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= rr, palette=mypal, lwd=3)
+?paint
+r <- paint(tree, subtree=c("1"="metamorphosis", "9"="other")
+)
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)
+r <- paint(tree, subtree=c("1"="metamorphosis", "9"="other"), branch=c("9"="other"))
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)
+mrca(tree,c("Proteus", "Necturus"))
+mrca(tree, "Desmognathus")
+mrca(tree,c("Amphiuma", "Bolitoglossa"))
+# mrca(tree,c("Hemidactylium", "Bolitoglossa")) 113
+mrca(tree,c("Hemidactylium", "Bolitoglossa"))
+mrca(tree,c("tridentifera", "neotenes"))
+mrca(tree,c("Batrachoseps", "Bolitoglossa"))
+mrca(tree,c("Batrachoseps", "Bolitoglossa")) 109
+r <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"113"="other",#
+  											"38"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"113"="other",#
+  											"38"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.4, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.4, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= c(regimes["meta"],r), palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+regimes$meta2 <- r
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= regimes["meta", "meta2"], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= regimes[c("meta", "meta2")], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+r
+regimes
+pdf(file="Meta.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= regimes["meta"], palette=mypal, lwd=3)#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r, palette=mypal, lwd=3)#
+dev.off()
+dat <- read.csv("Data_Supp_Table_corrected_all_regimes.csv")#
+ouwie.dat <- read.csv("ouwie_nodelabels.csv")
+treemo <- read.tree("regimes_RM/ancPlethD/118_Metamorphosis_Other_ancestral_plethodontid_directdevelops.tre")
+read.tree("regimes_RM\ancPlethD\Metamorphosis_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+read.tree("regimes_RM/ancPlethD/Metamorphosis_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree4 <- read.tree("regimes_RM/ancPlethD/Four_regime.tre")
+tree4
+require(treeio)
+install.packages("treeio")
+require(treeio)
+?read.newick
+read.newick("regimes_RM/ancPlethD/Four_regime.tre", node.label=)
+read.newick("regimes_RM/ancPlethD/Four_regime.tre", node.label="&!color")
+read.newick("regimes_RM/ancPlethD/Four_regime.tre", node.label="label")
+read.newick("regimes_RM/ancPlethD/Four_regime2.tre", node.label="label")
+read.newick("regimes_RM/ancPlethD/Four_regime2.tre")
+read.newick("regimes_RM/ancPlethD/Four_regime2.tre", node.label="label")
+read.newick("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre", node.label="label")
+read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre", node.label="label")
+read.nexus("regimes_RM/ancPlethD/Four_regime2.tre", node.label="label")
+read.newick("regimes_RM/ancPlethD/Four_regime2.tre", node.label="label")
+read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+plot(tree)
+?read.nexus
+str(tree)
+tree <- read.tree("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+?read.tree
+tree <- read.tree("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre", nodel.label="&!color")
+tree <- read.tree("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre", label="&!color")
+tree <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre", nodel.label="&!color")
+tree4 <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree4 <- read.tree("regimes_RM/ancPlethD/Four_regime.tre")
+tree4 <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree4a <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")
+tree <- ape2ouch(tree4a)
+?plot(tree)
+?ouchtree
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), lwd=3, node.names=T)
+plot(tree, text_opts = list(cex=.5, offset=0.1), margin=c(.3), lwd=3, node.names=T)
+dat <- read.csv("Data_Supp_Table_corrected_all_regimes.csv")#
+ouwie.dat <- read.csv("ouwie_nodelabels.csv")#
+#
+tree4a <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")#
+tree <- ape2ouch(tree4a)#
+#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), lwd=3, node.names=T)#
+treea <- read.tree("JP_MLtree_118spp_meanbrlens.tre")#
+plot(treea, cex=.4, no.margin=T)#
+tree <- ape2ouch(treea)#
+#
+treedat <- as(tree, "data.frame")#
+treedat <- merge(treedat, dat, by="labels", all=T)#
+rownames(treedat) <- treedat$nodes
+treedat
+dat
+treedat
+treedat[is.na(treedat), 5:8]
+treedat[is.na(treedat), 5:8] <- "M"
+regimes <- treedat[c("meta.nf.dd.paed", "meta.nf", "meta.dd.paed", "meta")]
+treedat <- as(tree, "data.frame")#
+treedat <- merge(treedat, dat, by="labels", all=T)#
+rownames(treedat) <- treedat$nodes#
+#
+regimes <- treedat[c("meta.nf.dd.paed", "meta.nf", "meta.dd.paed", "meta")]#
+regimes[is.na(regimes)] <- "M"
+regimes
+regimes2 <- regimes#
+regimes2[c("meta", "meta.dd.paed")][regimes2[c("meta", "meta.dd.paed")]=="M"] <- "metamorphosis"#
+regimes2[regimes2=="D"] <- "direct development"#
+regimes2[regimes2=="M"] <- "meta-np"   # mf#
+regimes2[regimes2=="Mpleth"] <- "meta-p"  #mnf#
+regimes2[regimes2=="P"] <- "paedomorphosis"#
+regimes2[regimes2=="x"] <- "other"#
+#
+# Again, Mplethodontid = Meta_nf#
+# And Mnon-plethodontid = Meta_f#
+#
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")#
+names(reg) <- c("direct development", "metamorphosis", "meta-np", "meta-p", "paedomorphosis", "other" )#
+#
+mypal <- function(x) {return(reg[names(reg)])}
+r4 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"112"="direct development",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3)
+r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"112"="direct development",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3)
+reg <- palette <- c("#000000", "chartreuse",  "#E69F00","#009E73", "#0072B2", "#CC79A7")#
+names(reg) <- c("direct development", "metamorphosis", "meta-np", "meta-p", "paedomorphosis", "other" )
+mypal <- function(x) {return(reg[names(reg)])}
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3)
+r4
+names(r4)
+regimes2
+r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"112"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3)
+reg
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, title="metap.np.dd.paed")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")
+r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"112"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")
+r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"112"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")
+r2
+cbind(r2, r3a r3, r4)
+cbind(r2, r3a, r3, r4)
+cbind(as.character(r2), as.character(r3a), as.character(r3), as.character(r4))
+as.data.frame(r2, r3a, r3, r4)
+as.data.frame(c(r2, r3a, r3, r4))
+as.data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4))
+as.data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)
+data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)
+rownames(regimes) <- names(r4)
+regimes
+print(tree)
+regimes$nodes <- names(r4)
+regimes
+print(tree)
+as.data.frame(tree)
+as(tree,"data.frame")
+treefile <- as(tree,"data.frame")
+merge(treefile, regimes, by="nodes")
+treefile <- merge(treefile, regimes, by="nodes")
+write.csv(treefile, file="ouchtree_ancPlethD.csv")
+pdf(file="Regimes_ancPlethD.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+write.csv(treefile, file="ouchtree_ancPlethD.csv")
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"112"="meta-p",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"112"="meta-p",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"112"="metamorphosis",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"112"="metamorphosis",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+write.csv(treefile, file="ouchtree_ancPlethM.csv")
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+write.csv(treefile, file="ouchtree_ancPlethM.csv")
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"46"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"46"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"46"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+write.csv(treefile, file="ouchtree_ancPlethM.csv")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= as.character(r4), palette=mypal, lwd=3, main="metap.np.dd.paed")
+r4
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"46"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"46"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"46"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= as.character(r4), palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+write.csv(treefile, file="ouchtree_ancPlethM.csv")
+r4
+r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+r4
+r3
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"=NA,#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"=NA,#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3)
+r3
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"46"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"=NA,#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"46"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"=NA,#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"46"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")
+source("paintRegimes.R")
+r4
+reg[names(reg)]
+treefile
+treefile$nodes
+order(as.numeric(treefile$nodes))
+oo <- order(as.numeric(treefile$nodes))
+treefile[oo,]
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"112"="direct development",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"112"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"112"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"= "metamorphosis",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"112"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"= "metamorphosis",#
+  							                "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethD.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+oo <- order(as.numeric(treefile$nodes))#
+write.csv(treefile[oo,], file="ouchtree_ancPlethD.csv")
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"46"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"46"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"46"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+oo <- order(as.numeric(treefile$nodes))#
+write.csv(treefile[oo,], file="ouchtree_ancPlethM.csv")
+write.csv(treefile[oo,], file="ouchtree_ancPlethM.csv", rownames=F)
+write.csv(treefile[oo,], file="ouchtree_ancPlethM.csv", row.names=F)
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"112"="direct development",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"112"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"112"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"= "metamorphosis",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"112"="direct development",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"112"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"= "metamorphosis",#
+  							                "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"112"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethD.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+oo <- order(as.numeric(treefile$nodes))#
+write.csv(treefile[oo,], file="ouchtree_ancPlethD.csv", row.names=F)
+# r4 = "metap.np.dd.paed"#
+  r4 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+  											"46"="direct development",#
+   											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="meta-np",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r3 = "metap.np.other"#
+  r3 <- paint(tree, subtree=c("1"="meta-np", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+  											"46"="other",#
+  											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="meta-np",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="meta-np",#
+   											"144"="other",#
+  											"46"="other",#
+  											"112"="meta-p",#
+ 											"37"="meta-p",#
+  											"111"="meta-p",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+# r3a = "meta.dd.paed"#
+  r3a <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+  											"46"="direct development",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  							                "9"="paedomorphosis",#
+  											"22"="paedomorphosis",#
+  											"114"="metamorphosis",#
+   											"144"="paedomorphosis",#
+  											"46"="direct development",#
+  											"112"="metamorphosis",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="paedomorphosis",#
+  											"109"="direct development"#
+ 											))#
+# r2 = "meta.other"#
+  r2 <- paint(tree, subtree=c("1"="metamorphosis", #
+  											"9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+  											"46"="other",#
+  											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											), #
+  							branch=c("1"="metamorphosis",#
+  										    "9"="other",#
+  											"22"="other",#
+  											"114"="metamorphosis",#
+   											"144"="other",#
+  											"46"="other",#
+ 											"37"="metamorphosis",#
+  											"111"="metamorphosis",#
+  											"49"="other",#
+  											"109"="other"#
+ 											))#
+#
+pdf(file="Regimes_ancPlethM.pdf")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r4, palette=mypal, lwd=3, main="metap.np.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3, palette=mypal, lwd=3, main="metap.np.other")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r3a, palette=mypal, lwd=3, main="meta.dd.paed")#
+plot(tree, text_opts = list(cex=.3, offset=0.1), margin=c(.3), regimes= r2, palette=mypal, lwd=3, main="meta.other")#
+dev.off()#
+#
+regimes <- data.frame("meta.other"=r2, "meta.dd.paed"=r3a, "metap.np.other"=r3, "metap.np.dd.paed"=r4)#
+rownames(regimes) <- names(r4)#
+regimes$nodes <- names(r4)#
+treefile <- as(tree,"data.frame")#
+treefile <- merge(treefile, regimes, by="nodes")#
+oo <- order(as.numeric(treefile$nodes))#
+write.csv(treefile[oo,], file="ouchtree_ancPlethM.csv", row.names=F)
+require(ape)#
+require(ouch)#
+#
+dat <- read.csv("Data_Supp_Table_corrected_all_regimes.csv")#
+ouwie.dat <- read.csv("ouwie_nodelabels.csv")#
+#
+tree4a <- read.nexus("regimes_RM/ancPlethD/Four_Mplethodontid_Mnon-plethodontid_DD_Paed_ancestral_plethodontid_directdevelops.tre")#
+tree <- ape2ouch(tree4a)
+tree4a
+tree4a$edge
+str(tree4a)
+print(tree)
