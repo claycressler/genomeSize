@@ -20,170 +20,40 @@ library(parallel)
 This markdown script contains all of the code necessary to replicate the phylogenetic comparative analyses of salamander genome size found in the manuscript, "Mueller et al. Metamorphosis imposes variable constraints on genome expansion."
 
 ```{r, echo=FALSE}
+## Load in the consensus phylogenetic tree 
+tree <- read.tree("JP_MLtree_118spp_meanbrlens.tre")
+## Load in the regime information for internal nodes
+nodedata <- readRDS("nodedata_ancPlethM.RDS")
+## Load in the genome size and life history data and modify it for OUwie analyses
+mutate(read.csv("Data_Supp_Table_9-1-21.csv"),
+       labels=paste(Genus,Species,sep="_"),
+       meta.other=unname(sapply(LifeHistoryStrategy,
+                                function(lh) switch(lh,"D"="other","M"="metamorphosis","Mpleth"="metamorphosis","P"="other"))),
+       meta.dd.paed=unname(sapply(LifeHistoryStrategy,
+                                  function(lh) switch(lh,"D"="direct development","M"="metamorphosis","Mpleth"="metamorphosis","P"="paedomorphosis"))),
+       metap.np.other=unname(sapply(LifeHistoryStrategy,
+                                function(lh) switch(lh,"D"="other","M"="meta-np","Mpleth"="meta-p","P"="other"))),
+       metap.np.dd.paed=unname(sapply(LifeHistoryStrategy,
+                                function(lh) switch(lh,"D"="direct development","M"="meta-np","Mpleth"="meta-p","P"="paedomorphosis"))),
+       genomesize=log(GenomeSize))[,5:10] -> tipdata
+## Put the data in tip.label order
+tipdata <- tipdata[match(tree2$tip.label,tipdata$labels),]
 
-tree <- read.nexus("av_ultra_fulldataset.nex")
-tree_meta <- tree_meta.nf <- tree_meta.dd.paed <- tree_meta.nf.dd.paed <- tree
-## Load the hypotheses
-nodedata <- read.csv('ouwie_nodelabels.csv',stringsAsFactors=FALSE)
-nodedata <- nodedata[,c('node','meta','meta.nf','meta.dd.paed','meta.nf.dd.paed')]
-## meta has two regimes: M, x
-## meta.dd.paed has three regimes: D, M, P
-## meta.nf has three regimes, x, M, Mpleth
-## meta.nf.dd.paed has four regimes: D, M, Mpleth, P
-## code Regime names as numbers for the OUwie algorithm
-nn <- nodedata
-nn[-1] <- sapply(nn[-1], as.character)
-nn[nn=="D"] <- 1
-nn[nn=="M"] <- 2
-nn[nn=="Mpleth"] <- 3
-nn[nn=="P"] <- 4
-nn[nn=="x"] <- 5
-## Add node labels to trees
-tree_meta$node.label <- nn$meta
-tree_meta.nf$node.label <- nn$meta.nf
-tree_meta.dd.paed$node.label <- nn$meta.dd.paed
-tree_meta.nf.dd.paed$node.label <- nn$meta.nf.dd.paed
-## Tip data
-dat <- read.csv("tree1.dat.csv")
-dat$genomesize <- log(dat$genomesize)
-tdat <- dat[!is.na(dat$genomesize),]  # tip data
-ndat <- dat[is.na(dat$genomesize),]   # node data
-## reorder tdat to match order of tip labels in phylo tree
-oo <- sapply(tree$tip.label, function(x) grep(x, tdat$labels))
-tipdat <- tdat[oo,]
-tipdat <- tipdat[c("labels", "meta", "meta.nf", "meta.dd.paed","meta.nf.dd.paed", "genomesize")]
-## code Regime names as numbers for the OUwie algorithm
-tt <- tipdat
-tt[,1:(ncol(tipdat)-1)] <- sapply(tt[,1:(ncol(tipdat)-1)], as.character)
-tt[tt=="D"] <- 1
-tt[tt=="M"] <- 2
-tt[tt=="Mpleth"] <- 3
-tt[tt=="P"] <- 4
-tt[tt=="x"] <- 5
-### input dataframes - one for each hypothesis
-data.meta <- tt[c("labels", "meta", "genomesize")]
-data.meta.nf <- tt[c("labels", "meta.nf", "genomesize")]
-data.meta.dd.paed <- tt[c("labels","meta.dd.paed","genomesize")]
-data.meta.nf.dd.paed <- tt[c("labels", "meta.nf.dd.paed", "genomesize")]
+tree_meta.other <- tree_meta.dd.paed <- tree_metap.np.other <- tree_metap.np.dd.paed <- tree
+tree_meta.other$node.label <- nodedata$meta.other
+tree_meta.dd.paed$node.label <- nodedata$meta.dd.paed
+tree_metap.np.other$node.label <- nodedata$metap.np.other
+tree_metap.np.dd.paed$node.label <- nodedata$metap.np.dd.paed
 
 ```
-
-```{r hyp2, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Orange = Metamorphosis, Blue green = Non-feeding metamorphosis, Blue = Paedomorphosis, Reddish purple = Direct development or paedomorphosis."}
-library(ouch)
-dat1 <- read.csv("tree1.dat.csv")
-tree1 <- read.nexus("av_ultra_fulldataset.nex")
-tree <- ape2ouch(tree1)
-dat <- dat1
-rownames(dat) <- dat$nodes
-regimes <- dat[c("meta", "meta.dd.paed", "meta.nf.dd.paed","meta.nf")]
-gsz <- log(dat['genomesize'])
-
-regimes2 <- regimes
-regimes2[regimes2=="D"] <- 1
-regimes2[regimes2=="M"] <- 2
-regimes2[regimes2=="Mpleth"] <- 3
-regimes2[regimes2=="P"] <- 4
-regimes2[regimes2=="x"] <- 5
-
-arrange.tree <- function (root, anc) {
-  k <- which(anc==root)
-  n <- length(k)
-  reltree <- rep(0,length(anc))
-  reltree[root] <- 0.5
-  p <- list()
-  if (n > 0) {
-    m <- rep(0,n)
-    for (j in 1:n) {
-      p[[j]] <- arrange.tree(k[j],anc)
-      m[j] <- length(which(p[[j]] != 0))
-    }
-    cm <- c(0,cumsum(m))
-    for (j in 1:n) {
-      reltree <- reltree + (cm[j]/sum(m))*(p[[j]] != 0) + (m[j]/sum(m))*p[[j]]
-    }
-  }
-  reltree
-}
-
-is.root.node <- function (anc) {
-  is.na(anc)
-}
-
-palette <- c("#000000", "#E69F00","#009E73", "#0072B2", "#CC79A7")
-x <- tree
-rx <- range(x@times,na.rm=T)
-rxd <- 0.1*diff(rx)
-anc <- x@anc.numbers
-root <- which(is.root.node(anc))
-
-## Plot each painting separately
-par(mfrow=c(1,6), mar=c(1,0.5,0.5,0.5), oma=rep(0,4))
-tiplabels <- c(0,"")
-for (reg in c("meta","meta.nf","meta.dd.paed","meta.nf.dd.paed")) {
-  regimes <- regimes2[reg]
-  regimes <- regimes[x@nodes,1]
-  levs <- levels(as.factor(regimes))
-  for (r in levs) {
-    yy <- arrange.tree(root,anc)
-    xx <- x@times
-    f <- which(!is.root.node(anc) & regimes == r)
-    pp <- anc[f]
-    X <- array(data=c(xx[f], xx[pp], rep(NA,length(f))),dim=c(length(f),3))
-    Y <- array(data=c(yy[f], yy[pp], rep(NA,length(f))),dim=c(length(f),3))
-    oz <- array(data=1,dim=c(2,1))
-    X <- kronecker(t(X),oz)
-    Y <- kronecker(t(Y),oz)
-    X <- X[2:length(X)]
-    Y <- Y[1:(length(Y)-1)]
-    C <- rep(palette[as.numeric(r)],length(X))
-    if (r > levs[1]) par(new=T)
-    par(yaxt='n', bty="n", xaxt='n')
-    plot(X,Y,type='l',col=C,xlab='time',ylab='',xlim=rx+c(-rxd,rxd),ylim=c(0,1))
-    if (reg=="meta.nf.dd.paed")
-      ## record the y position and name of every node
-      tiplabels <- rbind(tiplabels, 
-                         cbind(Y[seq(1,length(Y),6)],x@nodelabels[f]))
-  }
-  mtext(side=3, line=-1.5, gsub("\\.", "\\-", reg), cex=0.9)
-}
-## Plot the names and genome sizes
-## The result of this block of code is a dataframe with the y position of each tip, the species at that tip, and the genome size of 
-tiplabels <- as.data.frame(tiplabels[-which(tiplabels[,2]==""),])
-colnames(tiplabels) <- c("yval", "name")
-tiplabels$yval <- as.numeric(as.character(tiplabels$yval))
-tiplabels$name <- sapply(tiplabels$name, 
-                         function(n) paste(strsplit(n, "\\_")[[1]][1], strsplit(n, "\\_")[[1]][2]))
-tree2 <- as(tree,"data.frame") %>% merge(., dat[,c(2,5)]) %>% drop_na(.)
-tree2$name <- sapply(tree2$labels, 
-                         function(n) paste(strsplit(n, "\\_")[[1]][1], strsplit(n, "\\_")[[1]][2]))
-tiplabels <- merge(tiplabels, tree2[,c("name","genomesize")])
-
-## plot genome sizes
-par(xaxt='s', mar=c(1,0,0.5,0.5))
-plot.new()
-plot.window(xlim=c(0, max(tiplabels$genomesize)), ylim=c(0,1))
-axis(1, line=-2)
-for (i in 1:nrow(tiplabels)) {
-  y <- tiplabels$yval[i] 
-  x <- tiplabels$genomesize[i]
-  rect(0, y-0.0025, x, y+0.0025, col=2)
-}
-mtext("Genome size", side=3, line=-1.5, cex=0.8)
-
-plot.new()
-text(rep(0,length(tiplabels)), tiplabels$yval, tiplabels$name, cex=0.8, adj=0)
-
-
-```
-
 Here are the four different adaptive hypothesis regime paintings (Fig. \@ref(fig:hyp)). 
 
 ```{r hyp, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Red = Metamorphosis, Green = Plethodontid metamorphosis, Blue = Paedomorphosis, Cyan = Direct development or paedomorphosis."}
 
 par(mar=c(1,0.5,1,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1, 6))
-plot(tree_meta, show.tip.label=FALSE)
+plot(tree_meta.other, show.tip.label=FALSE)
 mtext("meta", side=3, line=-1, cex=0.75)
-nodelabels(pch=21, bg=tree_meta$node.label)
+nodelabels(pch=21, bg=as.numeric(as.factor(tree_meta.other$node.label)))
 
 plot(tree_meta.nf, show.tip.label=FALSE)
 mtext("meta-nf", side=3, line=-1, cex=0.75)
@@ -222,59 +92,59 @@ I will proceed with fitting the following models: a standard Brownian motion mod
 ```{r, echo=FALSE, eval=FALSE}
 set.seed(1234321)
 
-bm.ouwie <- OUwie(tree_meta,data.meta,model=c("BM1"),root.station=FALSE,scaleHeight=TRUE,quiet=TRUE)
-#bm.ouwie2 <- OUwie(tree_meta,data.meta,model=c("BM1"),root.station=TRUE,scaleHeight=TRUE,quiet=TRUE)
+bm.ouwie <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BM1"),root.station=FALSE,scaleHeight=TRUE,quiet=TRUE)
+#bm.ouwie2 <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BM1"),root.station=TRUE,scaleHeight=TRUE,quiet=TRUE)
 
 ## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
-meta.OUM <- OUwie(tree_meta,data.meta,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-#meta.OUM2 <- OUwie(tree_meta,data.meta,model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.BMS <- OUwie(tree_meta,data.meta,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMA <- OUwie(tree_meta,data.meta,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMV <- OUwie(tree_meta,data.meta,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMVA <- OUwie(tree_meta,data.meta,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUM <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+#meta.other.OUM2 <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.BMS <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMA <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMV <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMVA <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
-meta.nf.OUM <- OUwie(tree_meta.nf,data.meta.nf,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.BMS <- OUwie(tree_meta.nf,data.meta.nf,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMA <- OUwie(tree_meta.nf,data.meta.nf,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMV <- OUwie(tree_meta.nf,data.meta.nf,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMVA <- OUwie(tree_meta.nf,data.meta.nf,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUM <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.BMS <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMA <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMV <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMVA <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
-meta.dd.paed.OUM <- OUwie(tree_meta.dd.paed,data.meta.dd.paed,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.BMS <- OUwie(tree_meta.dd.paed,data.meta.dd.paed,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMA <- OUwie(tree_meta.dd.paed,data.meta.dd.paed,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMV <- OUwie(tree_meta.dd.paed,data.meta.dd.paed,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMVA <- OUwie(tree_meta.dd.paed,data.meta.dd.paed,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.other.OUM <- OUwie(tree_metap.np.other,data=tipdata[,c("labels","metap.np.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.other.BMS <- OUwie(tree_metap.np.other,data=tipdata[,c("labels","metap.np.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.other.OUMA <- OUwie(tree_metap.np.other,data=tipdata[,c("labels","metap.np.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.other.OUMV <- OUwie(tree_metap.np.other,data=tipdata[,c("labels","metap.np.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.other.OUMVA <- OUwie(tree_metap.np.other,data=tipdata[,c("labels","metap.np.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
-meta.nf.dd.paed.OUM <- OUwie(tree_meta.nf.dd.paed,data.meta.nf.dd.paed,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.BMS <- OUwie(tree_meta.nf.dd.paed,data.meta.nf.dd.paed,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMA <- OUwie(tree_meta.nf.dd.paed,data.meta.nf.dd.paed,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMV <- OUwie(tree_meta.nf.dd.paed,data.meta.nf.dd.paed,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMVA <- OUwie(tree_meta.nf.dd.paed,data.meta.nf.dd.paed,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.dd.paed.OUM <- OUwie(tree_metap.np.dd.paed,data=tipdata[,c("labels","metap.np.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.dd.paed.BMS <- OUwie(tree_metap.np.dd.paed,data=tipdata[,c("labels","metap.np.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.dd.paed.OUMA <- OUwie(tree_metap.np.dd.paed,data=tipdata[,c("labels","metap.np.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.dd.paed.OUMV <- OUwie(tree_metap.np.dd.paed,data=tipdata[,c("labels","metap.np.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+metap.np.dd.paed.OUMVA <- OUwie(tree_metap.np.dd.paed,data=tipdata[,c("labels","metap.np.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
 
 ## save these results
 results <- list(BM1=bm.ouwie,
-                meta.OUM=meta.OUM,
-                meta.BMS=meta.BMS,
-                meta.OUMA=meta.OUMA,
-                meta.OUMV=meta.OUMV,
-                meta.OUMVA=meta.OUMVA,
-                meta.nf.OUM=meta.nf.OUM,
-                meta.nf.BMS=meta.nf.BMS,
-                meta.nf.OUMA=meta.nf.OUMA,
-                meta.nf.OUMV=meta.nf.OUMV,
-                meta.nf.OUMVA=meta.nf.OUMVA,
+                meta.other.OUM=meta.other.OUM,
+                meta.other.BMS=meta.other.BMS,
+                meta.other.OUMA=meta.other.OUMA,
+                meta.other.OUMV=meta.other.OUMV,
+                meta.other.OUMVA=meta.other.OUMVA,
+                metap.np.other.OUM=metap.np.other.OUM,
+                metap.np.other.BMS=metap.np.other.BMS,
+                metap.np.other.OUMA=metap.np.other.OUMA,
+                metap.np.other.OUMV=metap.np.other.OUMV,
+                metap.np.other.OUMVA=metap.np.other.OUMVA,
                 meta.dd.paed.OUM=meta.dd.paed.OUM,
                 meta.dd.paed.BMS=meta.dd.paed.BMS,
                 meta.dd.paed.OUMA=meta.dd.paed.OUMA,
                 meta.dd.paed.OUMV=meta.dd.paed.OUMV,
                 meta.dd.paed.OUMVA=meta.dd.paed.OUMVA,
-                meta.nf.dd.paed.OUM=meta.nf.dd.paed.OUM,
-                meta.nf.dd.paed.BMS=meta.nf.dd.paed.BMS,
-                meta.nf.dd.paed.OUMA=meta.nf.dd.paed.OUMA,
-                meta.nf.dd.paed.OUMV=meta.nf.dd.paed.OUMV,
-                meta.nf.dd.paed.OUMVA=meta.nf.dd.paed.OUMVA
+                metap.np.dd.paed.OUM=metap.np.dd.paed.OUM,
+                metap.np.dd.paed.BMS=metap.np.dd.paed.BMS,
+                metap.np.dd.paed.OUMA=metap.np.dd.paed.OUMA,
+                metap.np.dd.paed.OUMV=metap.np.dd.paed.OUMV,
+                metap.np.dd.paed.OUMVA=metap.np.dd.paed.OUMVA
                 )
-saveRDS(results, "all_model_fits.RDS")
+saveRDS(results, "all_model_fits_new.RDS")
 
 ```
 
@@ -288,7 +158,7 @@ The best-fitting model is the OU model with 4 selective regimes (1=direct develo
 data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names,
            loglik = lapply(results, function(x) x$loglik) %>% unlist %>% signif(3),
            AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
-           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3)) %>% unlist,
+           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
            sigma = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% sqrt %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
            theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
            ) %>% 
