@@ -25,19 +25,21 @@ tree <- read.tree("JP_MLtree_118spp_meanbrlens.tre")
 ## Load in the regime information for internal nodes
 nodedata <- readRDS("nodedata_ancPlethM.RDS")
 ## Load in the genome size and life history data and modify it for OUwie analyses
-mutate(read.csv("Data_Supp_Table_9-1-21.csv"),
+tab <- read.csv("Data_Supp_Table_9-1-21.csv")
+mutate(tab,
        labels=paste(Genus,Species,sep="_"),
-       meta.other=unname(sapply(LifeHistoryStrategy,
-                                function(lh) switch(lh,"D"="other","M"="metamorphosis","Mpleth"="metamorphosis","P"="other"))),
-       meta.dd.paed=unname(sapply(LifeHistoryStrategy,
-                                  function(lh) switch(lh,"D"="direct development","M"="metamorphosis","Mpleth"="metamorphosis","P"="paedomorphosis"))),
-       metap.np.other=unname(sapply(LifeHistoryStrategy,
+       meta.other=unname(sapply(as.character(LifeHistoryStrategy),
+                                function(lh)
+                                  switch(lh,"D"="other","M"="metamorphosis","Mpleth"="metamorphosis","P"="other"))),
+       meta.dd.paed=unname(sapply(as.character(LifeHistoryStrategy),
+                                  function(lh) switch(lh,"D"="direct-development","M"="metamorphosis","Mpleth"="metamorphosis","P"="paedomorphosis"))),
+       metap.np.other=unname(sapply(as.character(LifeHistoryStrategy),
                                 function(lh) switch(lh,"D"="other","M"="meta-np","Mpleth"="meta-p","P"="other"))),
-       metap.np.dd.paed=unname(sapply(LifeHistoryStrategy,
-                                function(lh) switch(lh,"D"="direct development","M"="meta-np","Mpleth"="meta-p","P"="paedomorphosis"))),
+       metap.np.dd.paed=unname(sapply(as.character(LifeHistoryStrategy),
+                                function(lh) switch(lh,"D"="direct-development","M"="meta-np","Mpleth"="meta-p","P"="paedomorphosis"))),
        genomesize=log(GenomeSize))[,5:10] -> tipdata
 ## Put the data in tip.label order
-tipdata <- tipdata[match(tree2$tip.label,tipdata$labels),]
+tipdata <- tipdata[match(tree$tip.label,tipdata$labels),]
 
 tree_meta.other <- tree_meta.dd.paed <- tree_metap.np.other <- tree_metap.np.dd.paed <- tree
 tree_meta.other$node.label <- nodedata$meta.other
