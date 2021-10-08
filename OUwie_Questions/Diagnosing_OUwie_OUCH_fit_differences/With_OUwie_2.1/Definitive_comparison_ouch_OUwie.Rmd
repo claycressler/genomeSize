@@ -77,3 +77,9 @@ ouwiefit$theta[,1]
 ```
 
 Excellent. It strikes me as particularly unlikely/impossible to get identical results with two different methods unless the methods were truly identical.
+
+```{r}
+ouwiefit2 <- OUwie(tree, trait, model="BM1", scaleHeight=TRUE, root.station=TRUE, quiet=TRUE)
+ouwiefit2
+ouchfit2 <- brown(ouch.trait, tree=ouch.tree)
+```
