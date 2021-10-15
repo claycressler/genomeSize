@@ -105,6 +105,11 @@ dat2$genomesize <- genomesize
 gsz2 <- log(dat2["genomesize"])
 regimes2 <- dat2[c("meta.other","meta.dd.paed","metap.np.other","metap.np.dd.paed")]
 tree2 <- ouchtree(nodes=dat2[,"nodes"],ancestors=dat2[,"ancestors"], times=dat2[,"times"], labels=dat2[,"labels"])
+regimes2$meta.dd.paed <- as.factor(regimes2$meta.dd.paed)
+regimes2$metap.np.dd.paed <- as.factor(regimes2$metap.np.dd.paed)
+regimes2$meta.other <- as.factor(regimes2$meta.other)
+regimes2$metap.np.other <- as.factor(regimes2$metap.np.other)
+
 
 bm.ouch2 <- brown(gsz2, tree2)
 meta.dd.paed.ouch2 <- hansen(gsz2, tree2, regimes2['meta.dd.paed'], sqrt.alpha=1, sigma=1)
