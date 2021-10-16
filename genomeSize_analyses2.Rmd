@@ -305,15 +305,15 @@ fitComparison <- function(data) {
           shift.point=1,
           quiet=TRUE,
           algorithm="invert") -> fit.simple.to.simple
-      OUwie(complexTree,
-          simpleData,
+      OUwie(simpleTree,
+          complexData,
           model="BM1",
           scaleHeight=TRUE,
           shift.point=1,
           quiet=TRUE,
           algorithm="invert") -> fit.simple.to.complex
-      OUwie(simpleTree,
-          complexData,
+      OUwie(complexTree,
+          simpleData,
           model="OUMV",
           scaleHeight=TRUE,
           shift.point=1,
@@ -386,9 +386,10 @@ fitComparison <- function(data) {
     }
     fits[[i]] <- list(fit.complex.to.complex,
                       fit.simple.to.simple,
-                      fit.complex.to.simple,
-                      fit.simple.to.complex)
+                      fit.simple.to.complex,
+                      fit.complex.to.simple)
   }
+  return(fits)
 }
 
 numCores <- detectCores()
@@ -396,6 +397,10 @@ mclapply(PMCdata,
          fitComparison,
          mc.cores=numCores) -> PMCfits
 saveRDS(PMCfits, file="PMCfits.RDS")
+system("git add .")
+system("git commit -m 'PMC fits'")
+system("git push")
+
 
 ```
 
