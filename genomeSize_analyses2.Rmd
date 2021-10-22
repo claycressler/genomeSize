@@ -2,7 +2,7 @@
 ---
 title: "Phylogenetic Analysis of Salamander Genome Size"
 author: "Clay Cressler"
-date: "06/09/2020"
+date: "10/22/2021"
 output: bookdown::html_document2
 self_contained: no
 ---
@@ -46,47 +46,6 @@ tree_meta.other$node.label <- nodedata$meta.other
 tree_meta.dd.paed$node.label <- nodedata$meta.dd.paed
 tree_metap.np.other$node.label <- nodedata$metap.np.other
 tree_metap.np.dd.paed$node.label <- nodedata$metap.np.dd.paed
-
-```
-Here are the four different adaptive hypothesis regime paintings (Fig. \@ref(fig:hyp)). 
-
-```{r hyp, echo=FALSE, fig.height=10, fig.width=10, fig.cap="The four evolutionary hypotheses, specified as regime paintings. Black = Direct development, Red = Metamorphosis, Green = Plethodontid metamorphosis, Blue = Paedomorphosis, Cyan = Direct development or paedomorphosis."}
-
-par(mar=c(1,0.5,1,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1, 6))
-plot(tree_meta.other, show.tip.label=FALSE)
-mtext("meta", side=3, line=-1, cex=0.75)
-nodelabels(pch=21, bg=as.numeric(as.factor(tree_meta.other$node.label)))
-
-plot(tree_meta.nf, show.tip.label=FALSE)
-mtext("meta-nf", side=3, line=-1, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.nf$node.label)
-
-plot(tree_meta.dd.paed, show.tip.label=FALSE)
-mtext("meta-paed-dd", side=3, line=-1, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.dd.paed$node.label)
-
-par(mar=c(1,0.5,1,0))
-plot(tree_meta.nf.dd.paed, show.tip.label=FALSE)
-mtext("meta-nf-paed-dd", side=3, line=-1, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.nf.dd.paed$node.label)
-
-par(mar=c(1,0,1,0))
-plot.new()
-plot.window(xlim=c(0,max(exp(data.meta$genomesize))), ylim=c(0,1))
-axis(1, line=-2)
-for (i in 1:length(tree_meta$tip.label))
-  lines(c(0, exp(data.meta[data.meta$labels==tree_meta$tip.label[i],'genomesize'])),
-        rep(1-(i-1)/(length(tree_meta$tip.label)-1),2),
-        col=2, lwd=3)
-mtext("Genome size (pg)", side=3, line=-1, cex=0.75)
-
-par(mar=c(1,0,1,0))
-plot.new()
-plot.window(xlim=c(0,1), ylim=c(0,1))
-for (i in 1:length(tree_meta$tip.label))
-    text(0, 1-(i-1)/(length(tree_meta$tip.label)-1),
-         paste(strsplit(tree_meta$tip.label[i],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
-         cex=0.65, adj=0)
 
 ```
 I will proceed with fitting the following models: a standard Brownian motion model (BM1), a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where only $\theta$ varies across regimes (OUM), an OU model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
@@ -177,8 +136,12 @@ aics[-sort(c(grep("OUMA",aics$Hypothesis), grep("OUMVA",aics$Hypothesis))),]
 
 One way to help visualize what this best-fitting model is telling us is by looking at the distribution of genome sizes for species in each selective regime, relative to the expected stationary distribution of genome sizes, given the model estimates for $\theta$, $\alpha$, and $\sigma$. 
 In particular, Ho and Ane (2013) showed that the stationary distribution of an OU process will be a normal distribution with mean $\theta$ and variance $\sigma^2/(2\alpha)$.
+From this figure, it is clear that genome size is under strong stabilizing selection in the direct development regime (which is by far the most common selective regime across the tree).
+This also appears to be true of genome size in the metamorphosing non-plethodontid salamander regime (although since the peak of the genome size distribution is slightly smaller than the predicted mean, there are still some salamanders potentially experiencing some directional selection towards increasing genome sizes).
+Genome size in the the metamorphosing plethodontid regime, on the other hand, appears to be under directional selection towards smaller genome sizes, since almost all metamorphosing plethodontid salamanders have genome sizes that are larger than the expected mean.
+Conversely, genome size in the paedomorph regime appears to be under directional selection towards larger size (which we know is not actually directional selection so much as unconstrained TE accumulation).
 ```{r, echo=FALSE, fig.height=4, fig.width=6.5, fig.cap="Observed distributions of genome size in each selective regime compared against the stationary distribution predicted by the OUMV model (dashed line)."}
-par(mfrow=c(1,4), oma=c(2,2,0,0), mar=c(1.5,1.5,2,0.5))
+par(mfrow=c(1,4), oma=c(2,2,0,0), mar=c(1.5,1.5,3,0.5))
 for (i in 1:4) {
   hyp <- c("direct development", "meta-np", "meta-p", "paedomorphosis")[i]
   sigma <- sqrt(results[["metap.np.dd.paed.OUMV"]]$solution['sigma.sq',hyp]/(2*results[["metap.np.dd.paed.OUMV"]]$solution['alpha',hyp]))
@@ -188,8 +151,11 @@ for (i in 1:4) {
   xlow <- min(c(qnorm(0.005,mean=mu,sd=sigma), min(y$breaks)))
   xseq <- seq(floor(xlow),ceiling(xhigh),0.01)
   title <- switch(hyp, "direct development"="Direct\nDevelopment", "meta-np"="Meta-\nNon-Pleth", "meta-p"="Meta-\nPleth", "paedomorphosis"="Paedo-\nmorphosis")
-  hist(tipdata$genomesize[tipdata$metap.np.dd.paed==hyp], freq=FALSE, main=title, xlab="", ylab="", xlim=range(xseq), ylim=c(0,max(max(y$density),dnorm(mu,mean=mu,sd=sigma))))
+  hist(tipdata$genomesize[tipdata$metap.np.dd.paed==hyp], freq=FALSE, main="", xlab="", ylab="", xlim=range(xseq), ylim=c(0,max(max(y$density),dnorm(mu,mean=mu,sd=sigma))))
   lines(xseq, 1/(sigma*sqrt(2*pi))*exp(-(xseq-mu)^2/(2*sigma^2)), lwd=2, lty=2)
+  legend(x='topleft', c("a","b","c","d")[i], cex=1.5, bty='n',adj=c(3,0))
+  box('plot')
+  mtext(title, side=3, line=0, cex=1)
 }
 
 
@@ -406,20 +372,21 @@ system("git push")
 
 We can also use these fits to look at the confidence intervals for each of the parameters of the best-fitting model using a parametric bootstrap.
 
-```{r}
+```{r, echo=FALSE}
 PMCfits <- readRDS("PMCfits.RDS")
   
-## Bootstrap parameter estimates
-data.frame(parameter=c('alpha','sigma.sq (DD)', 'sigma.sq (M)', 'sigma.sq (Mpleth)', 'sigma.sq (P)', 'theta (DD)', 'theta (M)', 'theta (Mpleth)', 'theta (P)'),
-           CI=c((lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$solution['alpha',] %>% unique) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=", "),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$solution['sigma.sq',1]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$solution['sigma.sq',2]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$solution['sigma.sq',3]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$solution['sigma.sq',4]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$theta[1,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$theta[2,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$theta[3,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
-                (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$theta[4,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","))
+## Bootstrap parameter estimates from the best-fitting model
+data.frame(parameter=c('alpha','sigma.sq (DD)', 'sigma.sq (Meta-NP)', 'sigma.sq (Meta-P)', 'sigma.sq (Paed)', 'theta (DD)', 'theta (Meta-NP)', 'theta (Meta-P)', 'theta (Paed)'),
+           Estimate=as.numeric(c(aics[7,4],strsplit(aics[7,5],", ")[[1]], strsplit(aics[7,6],", ")[[1]])),
+           CI=c((lapply(PMCfits, function(f) f[[5]][[1]]$solution['alpha',] %>% unique) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$solution['sigma.sq',1]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$solution['sigma.sq',2]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$solution['sigma.sq',3]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$solution['sigma.sq',4]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$theta[1,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$theta[2,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$theta[3,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[5]][[1]]$theta[4,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","))
 )
 ```
 
@@ -428,353 +395,173 @@ To determine whether the data really supports the conclusions we want to draw fr
 We define the difference in the log-likelihoods between the two models as our test statistic: $\delta  = -2 (\log L_0 - \log L_1)$, where we assume that the $L_1$ is the likelihood of the more complex model.
 Higher values of this likelihood ratio indicate more support for the complex model.
 We will use the simulated datasets to estimate the distribution of $\delta$ when the data is generated by either of the two models under comparison.
-Our first comparison is between the meta hypothesis, fitted with the OU model (the simplest adaptive hypothesis), and the non-adaptive Brownian motion hypothesis.
-The p-value for this comparison is 0.016: when the data is generated by a non-adaptive model, the value of the test statistic is almost never as large as the value that we observed with the true dataset.
+Our first comparison is between the $meta-other$ hypothesis, fitted with the OUMV model (the simplest adaptive hypothesis, but with separate $\sigma$ parameters for each regime), and the non-adaptive Brownian motion hypothesis.
+The p-value for this comparison is 0.004: when the data is generated by a non-adaptive model, the value of the test statistic is almost never as large as the value that we observed with the true dataset.
 
-```{r}
+```{r, echo=FALSE}
 ## The true value of the test statistic
-delta <- -2*(results[["BM1"]]$loglik - results[["meta.OUM"]]$loglik)
+delta <- -2*(results[["BM1"]]$loglik - results[["meta.other.OUMV"]]$loglik)
 
 ## The distribution of the test statistic when the data is generated by the BM1 model
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.bm1.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.to.bm1.data"]]$loglik) %>% unlist))
+## Note that the order of model fits is 
+## (1) complex model to data generated by the complex model
+## (2) simple model to data generated by the simple model
+## (3) simple model to data generated by the complex model
+## (4) complex model to data generated by the simple model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[1]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[1]][[4]]$loglik) %>% unlist))
 
 ## the proportion of the simulated values larger than the test statistic provides an approximation to the p-value for the test, the probability that a difference at least as large would be seen under model 0 (BM)
 
-meta.v.BM.p <- sum(delta < delta.dist)/length(delta.dist)
-meta.v.BM.p
+meta.other.v.bm.p <- sum(delta < delta.dist)/length(delta.dist)
+meta.other.v.bm.p
 
 ```
-We can also look at the overlap between the distributions of the test statistic when the data is generated by the non-adaptive model versus the adaptive model to get a sense of power. You can see that the power is fairly high (0.69), meaning that 69\% of the test statistic values when the data is generated by the adaptive model are larger than the 95th percentile of the distribution when the data is generated by the non-adaptive model. Both the p-value and the power can be visualized by a plot of the two distributions (Fig. \@ref(fig:pmcResults)A).)
+We can also look at the overlap between the distributions of the test statistic when the data is generated by the non-adaptive model versus the adaptive model to get a sense of power. You can see that the power is very high (0.94), meaning that 94\% of the test statistic values when the data is generated by the adaptive model are larger than the 95th percentile of the distribution when the data is generated by the non-adaptive model. Both the p-value and the power can be visualized by a plot of the two distributions (Fig. \@ref(fig:pmcResults)A).)
 
-```{r}
-## The distribution of the test statistic when the data is generated by the oumv.meta.nf.dd.paed model
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist))
+```{r, echo=FALSE}
+## The distribution of the test statistic when the data is generated by the meta.other model
+## Note that the order of model fits is 
+## (1) complex model to data generated by the complex model
+## (2) simple model to data generated by the simple model
+## (3) simple model to data generated by the complex model
+## (4) complex model to data generated by the simple model
+
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[1]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[1]][[1]]$loglik) %>% unlist))
 ## The degree of overlap between this distribution and the one above gives a sense of the power.
 ## The amount of this distribution to the right of the test statistic value that would reject the non-adaptive model with a false positive rate of 5% above gives the probability of rejecting model 0 when the data are produced by model 1 (e.g., the power)
-meta.v.bm.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.v.bm.power 
+meta.other.v.bm.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+meta.other.v.bm.power 
 ```
 
-Using the same methodology, we can calculate the approximate p-value and power for the second test, between $meta-paed-dd$ (OUM) and $metamorphosis-other$ (OUM). This tests whether more finely subdividing non-metamorphosing strategies into direct development and paedomorphosis provides a better fit to the data than simply between distinguishing between metamorphosing and non-metamorphosing strategies. Here the p-value is 0.096 and the power is 0.39, suggesting that the addition of direct development and paedomorphosis as separate constraint regimes does not really improve the explanatory power of the model. See Fig. \@ref(fig:pmcResults)B for a visual depiction of these results.
+Using the same methodology, we can calculate the approximate p-value and power for the second test, between $meta-paed-dd$ (OUMV) and $metamorphosis-other$ (OUMV). This tests whether more finely subdividing non-metamorphosing strategies into direct development and paedomorphosis provides a better fit to the data than simply between distinguishing between metamorphosing and non-metamorphosing strategies. Here the p-value is 0.088 and the power is 0.57, suggesting that the addition of direct development and paedomorphosis as separate constraint regimes does not really improve the explanatory power of the model. See Fig. \@ref(fig:pmcResults)B for a visual depiction of these results.
 
-```{r}
-delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.dd.paed.OUM"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist))
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.other.OUMV"]]$loglik - results[["meta.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[2]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[2]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[2]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[2]][[1]]$loglik) %>% unlist))
 ## p-value
-meta.dd.paed.v.meta.p <- sum(delta < delta.dist)/length(delta.dist)
+meta.dd.paed.v.meta.other.p <- sum(delta < delta.dist)/length(delta.dist)
 ## power
-meta.dd.paed.v.meta.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.dd.paed.v.meta.p
-meta.dd.paed.v.meta.power
+meta.dd.paed.v.meta.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+meta.dd.paed.v.meta.other.p
+meta.dd.paed.v.meta.other.power
 ```
 
-Using the same methodology, we can calculate the approximate p-value and power for the third test, $meta_f-meta_{nf}-other$ (OUMV) and $metamorphosis-other$ (OUM). This tests whether distinguishing between different metamorphosis strategies is supported. Here the p-value is 0.032 and the power is 0.796, implying we can confidently reject the hypothesis that the simpler model produces a better fit to the data than the more complicated model that distinguishes among metamorphosing life histories. See Fig. \@ref(fig:pmcResults)C for a visual depiction of these results.
+Using the same methodology, we can calculate the approximate p-value and power for the third test, $meta_p-meta_{np}-other$ (OUMV) and $metamorphosis-other$ (OUM). This tests whether distinguishing between different metamorphosis strategies is supported. Here the p-value is 0.084 and the power is 0.522. See Fig. \@ref(fig:pmcResults)C for a visual depiction of these results.
 
 
-```{r}
-delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.nf.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oum.meta.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oumv.meta.nf.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.other.OUMV"]]$loglik - results[["metap.np.other.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[3]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[3]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[3]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[3]][[1]]$loglik) %>% unlist))
 ## p-value
-meta.nf.v.meta.p <- sum(delta < delta.dist)/length(delta.dist)
+metap.np.other.v.meta.other.p <- sum(delta < delta.dist)/length(delta.dist)
 ## power
-meta.nf.v.meta.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.nf.v.meta.p
-meta.nf.v.meta.power
-```
-
-
-We also calculate the p-value and power for the fourth test, $meta_f-meta_{nf}-paed-dd$ (OUMV) versus $meta-paed-dd$ (OUM). This tests whether separate regimes for feeding and non-feeding metamorphosis are supported, after accounting for the two non-metamorphosing strategies. Given the results above, it is unsurprising that the more complicated model is strongly supported, with a p-value of 0.03 and power of 0.88. See Fig. \@ref(fig:pmcResults)D for a visual depiction of these results.
-
-```{r}
-delta <- -2*(results[["meta.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-## p-value
-meta.nf.dd.paed.v.meta.dd.paed.p <- sum(delta < delta.dist)/length(delta.dist)
-## power
-meta.nf.dd.paed.v.meta.dd.paed.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.nf.dd.paed.v.meta.dd.paed.p
-meta.nf.dd.paed.v.meta.dd.paed.power
-```
-
-We also calculate the p-value and power for the fifth test, $meta_f-meta_{nf}-paed-dd$ (OUMV) versus $meta_f-meta_{nf}-other$ (OUMV). This tests whether allowing separate regimes for direct developers and paedomorphs is supported, once you have accounted for feeding and non-feeding metamorphosis. For this comparison, the p-value is 0.1 and the power is 0.54, indicating that there is some support for the more complex model, although it is not strong. See Fig. \@ref(fig:pmcResults)E for a visual depiction of these results.
-
-```{r}
-delta <- -2*(results[["meta.nf.OUMV"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-## p-value
-meta.nf.dd.paed.v.meta.nf.p <- sum(delta < delta.dist)/length(delta.dist)
-## power
-meta.nf.dd.paed.v.meta.nf.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.nf.dd.paed.v.meta.nf.p
-meta.nf.dd.paed.v.meta.nf.power
+metap.np.other.v.meta.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+metap.np.other.v.meta.other.p
+metap.np.other.v.meta.other.power
 ```
 
 
-Finally, just to cross all the t's and dot all the i's, we can calculate the p-value and power for the sixth test, $meta_f-meta_{nf}-paed-dd$ (OUMV) versus $meta_f-meta_{nf}-paed-dd$ (OUM), which tests whether multiple $\sigma$ values is well-supported by the data. Here the p-value is 0.088 and the power is 0.67, suggesting fairly good support for the more complex model. See Fig. \@ref(fig:pmcResults)F for a visual depiction of these results.
+We also calculate the p-value and power for the fourth test, $meta_p-meta_{np}-paed-dd$ (OUMV) versus $meta-paed-dd$ (OUMV). This tests whether separate regimes for feeding and non-feeding metamorphosis are supported, after accounting for the two non-metamorphosing strategies. The more complicated model is strongly supported, with a p-value of 0.046 and power of 0.718. See Fig. \@ref(fig:pmcResults)D for a visual depiction of these results.
 
-```{r}
-delta <- -2*(results[["meta.nf.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.dd.paed.OUMV"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[4]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[4]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[4]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[4]][[1]]$loglik) %>% unlist))
 ## p-value
-meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.p <- sum(delta < delta.dist)/length(delta.dist)
+metap.np.dd.paed.v.meta.dd.paed.p <- sum(delta < delta.dist)/length(delta.dist)
 ## power
-meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.power  <-sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
-meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.p
-meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.power
+metap.np.dd.paed.v.meta.dd.paed.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+metap.np.dd.paed.v.meta.dd.paed.p
+metap.np.dd.paed.v.meta.dd.paed.power
+```
+
+We also calculate the p-value and power for the fifth test, $meta_p-meta_{np}-paed-dd$ (OUMV) versus $meta_p-meta_{np}-other$ (OUMV). This tests whether allowing separate regimes for direct developers and paedomorphs is supported, once you have accounted for feeding and non-feeding metamorphosis. For this comparison, the p-value is 0.054 and the power is 0.728, indicating that there is fairly strong support for the more complex model. See Fig. \@ref(fig:pmcResults)E for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["metap.np.other.OUMV"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[5]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[5]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[5]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[5]][[1]]$loglik) %>% unlist))
+## p-value
+metap.np.dd.paed.v.metap.np.other.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+metap.np.dd.paed.v.metap.np.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+metap.np.dd.paed.v.metap.np.other.p
+metap.np.dd.paed.v.metap.np.other.power
+```
+
+
+Finally, just to cross all the t's and dot all the i's, we can calculate the p-value and power for the sixth test, $meta_p-meta_{np}-paed-dd$ (OUMV) versus $meta_p-meta_{np}-paed-dd$ (OUM), which tests whether multiple $\sigma$ values is well-supported by the data. Here the p-value is 0.002 and the power is 0.96, suggesting very strong support for the more complex model. See Fig. \@ref(fig:pmcResults)F for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["metap.np.dd.paed.OUM"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[6]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[6]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[6]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[6]][[1]]$loglik) %>% unlist))
+## p-value
+metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.power  <-sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.p
+metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.power
 ```
 
 ```{r pmcResults, echo=FALSE, fig.height=7.5, fig.width=10, fig.cap="Comparing the distributions of the test statistic when the data is generated by simpler (light gray) or more complex (dark gray) evolutionary models. The dashed line gives the actual value of the test statistic for the true data."}
+deltas <- c(-2*(results[["BM1"]]$loglik - results[["meta.other.OUMV"]]$loglik),
+           -2*(results[["meta.other.OUMV"]]$loglik - results[["meta.dd.paed.OUMV"]]$loglik),
+           -2*(results[["meta.other.OUMV"]]$loglik - results[["metap.np.other.OUMV"]]$loglik),
+           -2*(results[["meta.dd.paed.OUMV"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik),
+           -2*(results[["metap.np.other.OUMV"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik),
+           -2*(results[["metap.np.dd.paed.OUM"]]$loglik - results[["metap.np.dd.paed.OUMV"]]$loglik))
+pvalues <- c(meta.other.v.bm.p,
+             meta.dd.paed.v.meta.other.p,
+             metap.np.other.v.meta.other.p,
+             metap.np.dd.paed.v.meta.dd.paed.p,
+             metap.np.dd.paed.v.metap.np.other.p,
+             metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.p)
+powers <- c(meta.other.v.bm.power,
+            meta.dd.paed.v.meta.other.power,
+            metap.np.other.v.meta.other.power,
+            metap.np.dd.paed.v.meta.dd.paed.power,
+            metap.np.dd.paed.v.metap.np.other.power,
+            metap.np.dd.paed.oumv.v.metap.np.dd.paed.oum.power)
+
+complexModel <- c("meta-other","meta-dd-paed","metap-np-other","metap-np-dd-paed","metap-np-dd-paed","metap-np-dd-paed (OUMV)")
+simpleModel <- c("BM","meta-other","meta-other","meta-dd-paed","metap-np-other","metap-np-dd-paed (OUM)")
+  
 par(mar=c(2.5,2.5,1,1), oma=c(2,2,0,0), mfrow=c(2,3))
-## BM1 versus meta.nf.dd.paed OUMV
-delta <- -2*(results[["BM1"]]$loglik - results[["meta.OUM"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.bm1.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.to.bm1.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.bm1.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-mtext(side=1, outer=T, expression(delta))
-mtext(side=2, outer=T, 'Density')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c('BM','meta-other',paste0('p=',meta.v.BM.p),paste0('power=',meta.v.bm.power)), fill=c(gray(0.7),gray(0.2),gray(1),gray(1)),border=c(1,1,0,0), bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "A", bty='n', xjust=0.5, yjust=0.5)
-
-## meta versus meta.dd.paed
-delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.dd.paed.OUM"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c('meta-other','meta-paed-dd',paste0('p=',meta.dd.paed.v.meta.p),paste0('power=',meta.dd.paed.v.meta.power)), fill=c(gray(0.7),gray(0.2),0,0), border=c(1,1,0,0), bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "B", bty='n', xjust=0.5, yjust=0.5)
-
-## meta versus meta.nf
-delta <- -2*(results[["meta.OUM"]]$loglik - results[["meta.nf.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oum.meta.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oum.meta.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.to.oumv.meta.nf.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c('meta-other',expression('meta'['f']~'-meta'['nf']~'-other'),paste0('p=',meta.nf.v.meta.p),paste0('power=',meta.nf.v.meta.power)), fill=c(gray(0.7),gray(0.2),0,0), border=c(1,1,0,0), bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "C", bty='n', xjust=0.5, yjust=0.5)
-
-## meta.dd.paed OUM versus meta.nf.dd.paed OUMV
-delta <- -2*(results[["meta.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oum.meta.dd.paed.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c('meta-paed-dd',expression('meta'['f']~'-meta'['nf']~'-paed-dd'),paste0('p=',meta.nf.dd.paed.v.meta.dd.paed.p),paste0('power=',meta.nf.dd.paed.v.meta.dd.paed.power)), fill=c(gray(0.7),gray(0.2),0,0), border=c(1,1,0,0),bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "D", bty='n', xjust=0.5, yjust=0.5)
-
-
-## meta.nf (OUMV) versus meta.nf.dd.paed (OUMV)
-delta <- -2*(results[["meta.nf.OUMV"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c(expression('meta'['f']~'-meta'['nf']~'-other'),expression('meta'['f']~'-meta'['nf']~'-paed-dd'),paste0('p=',meta.nf.dd.paed.v.meta.nf.p), paste0('power=',meta.nf.dd.paed.v.meta.nf.power)), fill=c(gray(0.7),gray(0.2)), bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "E", bty='n', xjust=0.5, yjust=0.5)
-
-##  meta.nf.dd.paed OUM versus meta.nf.dd.paed OUMV
-delta <- -2*(results[["meta.nf.dd.paed.OUM"]]$loglik - results[["meta.nf.dd.paed.OUMV"]]$loglik)
-delta.dist <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oum.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[["fit.oum.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist) - 
-                    (lapply(PMCfits, function(f) f[["fit.oumv.meta.nf.dd.paed.to.oumv.meta.nf.dd.paed.data"]]$loglik) %>% unlist))
-d1 <- density(delta.dist)
-d2 <- density(delta.dist.2)
-plot.new()
-plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
-axis(1);axis(2);box('plot')
-lines(d1$x, d1$y, col=gray(0.7))
-with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
-lines(d2$x, d2$y, col=gray(0.2))
-with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
-abline(v=delta, lwd=2, lty=2)
-legend(x='topright', c(expression('meta'['f']~'-meta'['nf']~'-paed-dd'~'('~theta[i]~','~sigma~','~alpha~')'),expression('meta'['f']~'-meta'['nf']~'-paed-dd'~'('~theta[i]~','~sigma[i]~','~alpha~')'),paste0('p=',meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.p),paste0('power=',meta.nf.dd.paed.oumv.v.meta.nf.dd.paed.oum.power)), fill=c(gray(0.7),gray(0.2),0,0), border=c(1,1,0,0), bty='n', cex=1.1)
-legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), "F", bty='n', xjust=0.5, yjust=0.5)
+for (i in 1:6) {
+  delta <- deltas[i]
+  delta.dist <- -2*((lapply(PMCfits, function(f) f[[i]][[2]]$loglik) %>% unlist) - 
+                      (lapply(PMCfits, function(f) f[[i]][[4]]$loglik) %>% unlist))
+  delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[i]][[3]]$loglik) %>% unlist) - 
+                        (lapply(PMCfits, function(f) f[[i]][[1]]$loglik) %>% unlist))
+  d1 <- density(delta.dist)
+  d2 <- density(delta.dist.2)
+  plot.new()
+  plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+  axis(1);axis(2);box('plot')
+  mtext(side=1, outer=T, expression(delta))
+  mtext(side=2, outer=T, 'Density')
+  lines(d1$x, d1$y, col=gray(0.7))
+  with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+  lines(d2$x, d2$y, col=gray(0.2))
+  with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+  abline(v=delta, lwd=2, lty=2)
+  legend(x='topright', c(simpleModel[i],complexModel[i],paste0('p=',pvalues[i]),paste0('power=',powers[i])), fill=c(gray(0.7),gray(0.2),gray(1),gray(1)),border=c(1,1,0,0), bty='n', cex=1.1)
+  legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), letters[i], bty='n', xjust=0.5, yjust=0.5)
+}
 
 ```
-
-## Analyses with a different evolutionary history for plethodontids
-In the above analyses, the ancestor of all plethodontids is assumed to be a metamorphosing amphibian. However, there is some debate about this, and some researchers think that this ancestor was actually a direct developer. As such, we want to make sure that the conlusions drawn above are unaffected by this assumption. This requires modifying all three adaptive hypotheses to "repaint" the ancestral node.
-
-```{r hyp_alt_history, echo=FALSE, fig.width=10, fig.height=10, fig.cap="The four regime paintings with the ancestral node for plethodontids set as a direct developer, rather than a metamorphoser."}
-# which(tree_meta.nf.dd.paed$node.label=="3")
-# [1] 23 40 41 42 45 46 81 82 83 85 86 87 88
-tree_meta.nf.dd.paed2 <- tree_meta.nf.dd.paed
-tree_meta.nf.dd.paed2$node.label[23] <- "1"
-
-tree_meta.nf2 <- tree_meta.nf
-tree_meta.nf2$node.label[23] <- "5"
-
-tree_meta.dd.paed2 <- tree_meta.dd.paed
-tree_meta.dd.paed2$node.label[23] <- "1"
-
-tree_meta2 <- tree_meta
-tree_meta2$node.label[23] <- "5"
-
-par(mar=c(0.5,0.5,2,0.5), oma=c(0.5,0.5,0.5,0.5), mfrow=c(1,5))
-plot(tree_meta2, show.tip.label=FALSE)
-mtext("meta", side=3, line=0, cex=0.75)
-nodelabels(pch=21, bg=tree_meta$node.label)
-
-plot(tree_meta.nf2, show.tip.label=FALSE)
-mtext("meta-nf", side=3, line=0, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.nf$node.label)
-
-plot(tree_meta.dd.paed2, show.tip.label=FALSE)
-mtext("meta-paed-dd", side=3, line=0, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.dd.paed$node.label)
-
-par(mar=c(0.5,0.5,2,0))
-plot(tree_meta.nf.dd.paed2, show.tip.label=FALSE)
-mtext("meta-nf-paed-dd", side=3, line=0, cex=0.75)
-nodelabels(pch=21, bg=tree_meta.nf.dd.paed$node.label)
-
-par(mar=c(0.5,0,2,0))
-plot.new()
-plot.window(xlim=c(0,1), ylim=c(0,1))
-for (i in 1:length(tree_meta$tip.label))
-    text(0, 1-(i-1)/(length(tree_meta$tip.label)-1),
-         paste(strsplit(tree_meta$tip.label[1],"_")[[1]][1], strsplit(tree_meta$tip.label[i],"_")[[1]][2]),
-         cex=0.65, adj=0)
-
-
-
-```
-
-
-```{r, echo=FALSE, eval=FALSE}
-## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
-meta.OUM <- OUwie(tree_meta2,data.meta,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.BMS <- OUwie(tree_meta2,data.meta,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMA <- OUwie(tree_meta2,data.meta,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMV <- OUwie(tree_meta2,data.meta,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.OUMVA <- OUwie(tree_meta2,data.meta,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
-meta.nf.OUM <- OUwie(tree_meta.nf2,data.meta.nf,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.BMS <- OUwie(tree_meta.nf2,data.meta.nf,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMA <- OUwie(tree_meta.nf2,data.meta.nf,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMV <- OUwie(tree_meta.nf2,data.meta.nf,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.OUMVA <- OUwie(tree_meta.nf2,data.meta.nf,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
-meta.dd.paed.OUM <- OUwie(tree_meta.dd.paed2,data.meta.dd.paed,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.BMS <- OUwie(tree_meta.dd.paed2,data.meta.dd.paed,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMA <- OUwie(tree_meta.dd.paed2,data.meta.dd.paed,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMV <- OUwie(tree_meta.dd.paed2,data.meta.dd.paed,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.dd.paed.OUMVA <- OUwie(tree_meta.dd.paed2,data.meta.dd.paed,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
-meta.nf.dd.paed.OUM <- OUwie(tree_meta.nf.dd.paed2,data.meta.nf.dd.paed,model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.BMS <- OUwie(tree_meta.nf.dd.paed2,data.meta.nf.dd.paed,model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMA <- OUwie(tree_meta.nf.dd.paed2,data.meta.nf.dd.paed,model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMV <- OUwie(tree_meta.nf.dd.paed2,data.meta.nf.dd.paed,model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-meta.nf.dd.paed.OUMVA <- OUwie(tree_meta.nf.dd.paed2,data.meta.nf.dd.paed,model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
-
-## save these results
-results <- list(meta.OUM=meta.OUM,
-                meta.BMS=meta.BMS,
-                meta.OUMA=meta.OUMA,
-                meta.OUMV=meta.OUMV,
-                meta.OUMVA=meta.OUMVA,
-                meta.nf.OUM=meta.nf.OUM,
-                meta.nf.BMS=meta.nf.BMS,
-                meta.nf.OUMA=meta.nf.OUMA,
-                meta.nf.OUMV=meta.nf.OUMV,
-                meta.nf.OUMVA=meta.nf.OUMVA,
-                meta.dd.paed.OUM=meta.dd.paed.OUM,
-                meta.dd.paed.BMS=meta.dd.paed.BMS,
-                meta.dd.paed.OUMA=meta.dd.paed.OUMA,
-                meta.dd.paed.OUMV=meta.dd.paed.OUMV,
-                meta.dd.paed.OUMVA=meta.dd.paed.OUMVA,
-                meta.nf.dd.paed.OUM=meta.nf.dd.paed.OUM,
-                meta.nf.dd.paed.BMS=meta.nf.dd.paed.BMS,
-                meta.nf.dd.paed.OUMA=meta.nf.dd.paed.OUMA,
-                meta.nf.dd.paed.OUMV=meta.nf.dd.paed.OUMV,
-                meta.nf.dd.paed.OUMVA=meta.nf.dd.paed.OUMVA
-                )
-saveRDS(results, "all_model_fits_alt_history.RDS")
-
-```
-
-```{r, echo=FALSE}
-results <- readRDS("all_model_fits_alt_history.RDS")
-```
-
-You can see that changing this ancestral node has absolutely no effect on the model fitting results, which is unsurpising given how deep in the tree this switch occurs, and how short the branch is that is affected by the change.
-
-```{r, echo=FALSE}
-data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names, 
-           AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
-           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3)) %>% unlist,
-           sigma.sq = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
-           theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
-           ) %>% 
-  arrange(AICc) %>% as.data.frame
-```
-
