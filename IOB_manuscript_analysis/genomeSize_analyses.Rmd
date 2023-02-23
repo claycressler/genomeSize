@@ -1,0 +1,831 @@
+
+---
+title: "Phylogenetic Analysis of Salamander Genome Size"
+author: "Clay Cressler"
+date: "2/16/2023"
+output: bookdown::html_document2
+self_contained: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      dev=c('png','tiff'),
+                      fig.path='figures/')
+library(OUwie)
+library(tidyverse)
+library(parallel)
+
+```
+
+This markdown script contains all of the code necessary to replicate the phylogenetic comparative analyses of salamander genome size found in the manuscript, "Mueller et al. Metamorphosis imposes variable constraints on genome expansion."
+
+```{r, echo=FALSE}
+## Load in the consensus phylogenetic tree 
+tree <- read.tree("JP_MLtree_118spp_meanbrlens.tre")
+## Load in the regime information for internal nodes
+nodedata <- readRDS("nodedata_ancPlethM.RDS")
+nodedata[which(nodedata=="meta-p", arr.ind=TRUE)] <- "meta-abrupt"
+nodedata[which(nodedata=="meta-np", arr.ind=TRUE)] <- "meta-gradual"
+colnames(nodedata)[4:5] <- c("abrupt.gradual.other","abrupt.gradual.dd.paed")
+## Load in the genome size and life history data and modify it for OUwie analyses
+tab <- read.csv("Data_Supp_Table_9-1-21.csv")
+mutate(tab,
+       labels=paste(Genus,Species,sep="_"),
+       meta.other=unname(sapply(as.character(LifeHistoryStrategy),
+                                function(lh) switch(lh, 
+                                         "D"="other",
+                                         "M"="metamorphosis",
+                                         "Mpleth"="metamorphosis",
+                                         "P"="other"))),
+       meta.dd.paed=unname(sapply(as.character(LifeHistoryStrategy),
+                                  function(lh) switch(lh,"D"="direct development",
+                                                      "M"="metamorphosis",
+                                                      "Mpleth"="metamorphosis",
+                                                      "P"="paedomorphosis"))),
+       abrupt.gradual.other=unname(sapply(as.character(LifeHistoryStrategy),
+                                    function(lh) switch(lh,
+                                                        "D"="other",
+                                                        "M"="meta-gradual",
+                                                        "Mpleth"="meta-abrupt",
+                                                        "P"="other"))),
+       abrupt.gradual.dd.paed=unname(sapply(as.character(LifeHistoryStrategy),
+                                      function(lh) switch(lh,
+                                                          "D"="direct development",
+                                                          "M"="meta-gradual",
+                                                          "Mpleth"="meta-abrupt",
+                                                          "P"="paedomorphosis"))),
+       genomesize=log(GenomeSize))[,5:10] -> tipdata
+## Put the data in tip.label order
+tipdata <- tipdata[match(tree$tip.label,tipdata$labels),]
+## Adjust one species
+tipdata[tipdata$labels=="Eurycea_quadridigitata","abrupt.gradual.other"] <-
+  tipdata[tipdata$labels=="Eurycea_quadridigitata","abrupt.gradual.dd.paed"] <- "meta-abrupt"
+
+tree_meta.other <- tree_meta.dd.paed <- tree_abrupt.gradual.other <- tree_abrupt.gradual.dd.paed <- tree
+tree_meta.other$node.label <- nodedata$meta.other
+tree_meta.dd.paed$node.label <- nodedata$meta.dd.paed
+tree_abrupt.gradual.other$node.label <- nodedata$abrupt.gradual.other
+tree_abrupt.gradual.dd.paed$node.label <- nodedata$abrupt.gradual.dd.paed
+
+```
+I will proceed with fitting the following models: a standard Brownian motion model (BM1), a Brownian motion model where the drift parameter ($\sigma$) varies across regimes (BMS), an Ornstein-Uhlenbeck (OU) model where only $\theta$ varies across regimes (OUM), an OU model where selection strength varies across regimes ($\alpha$) (OUMA), an OU model where drift varies across regimes (OUMV), and an OU model where both selection and drift vary across regimes (OUMVA). 
+
+```{r, echo=FALSE, eval=FALSE}
+set.seed(1234321)
+
+bm.ouwie <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BM1"),root.station=FALSE,scaleHeight=TRUE,quiet=TRUE)
+## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
+meta.other.OUM <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.BMS <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMA <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMV <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMVA <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+meta.dd.paed.OUM <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.BMS <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMA <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMV <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMVA <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+abrupt.gradual.other.OUM <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.BMS <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMA <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMV <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMVA <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+abrupt.gradual.dd.paed.OUM <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.BMS <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMA <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMV <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMVA <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+## save these results
+results <- list(BM1=bm.ouwie,
+                meta.other.OUM=meta.other.OUM,
+                meta.other.BMS=meta.other.BMS,
+                meta.other.OUMA=meta.other.OUMA,
+                meta.other.OUMV=meta.other.OUMV,
+                meta.other.OUMVA=meta.other.OUMVA,
+                abrupt.gradual.other.OUM=abrupt.gradual.other.OUM,
+                abrupt.gradual.other.BMS=abrupt.gradual.other.BMS,
+                abrupt.gradual.other.OUMA=abrupt.gradual.other.OUMA,
+                abrupt.gradual.other.OUMV=abrupt.gradual.other.OUMV,
+                abrupt.gradual.other.OUMVA=abrupt.gradual.other.OUMVA,
+                meta.dd.paed.OUM=meta.dd.paed.OUM,
+                meta.dd.paed.BMS=meta.dd.paed.BMS,
+                meta.dd.paed.OUMA=meta.dd.paed.OUMA,
+                meta.dd.paed.OUMV=meta.dd.paed.OUMV,
+                meta.dd.paed.OUMVA=meta.dd.paed.OUMVA,
+                abrupt.gradual.dd.paed.OUM=abrupt.gradual.dd.paed.OUM,
+                abrupt.gradual.dd.paed.BMS=abrupt.gradual.dd.paed.BMS,
+                abrupt.gradual.dd.paed.OUMA=abrupt.gradual.dd.paed.OUMA,
+                abrupt.gradual.dd.paed.OUMV=abrupt.gradual.dd.paed.OUMV,
+                abrupt.gradual.dd.paed.OUMVA=abrupt.gradual.dd.paed.OUMVA
+                )
+saveRDS(results, "all_model_fits.RDS")
+
+```
+
+```{r, echo=FALSE}
+results <- readRDS("all_model_fits.RDS")
+```
+
+It is clear from the table below summarizing the model fits that the multiple-$\alpha$ models (OUMA and OUMVA) produce fitting errors. 
+This can be seen in the log-likelihoods, which if believed are often several orders of magnitude better than simpler models, and from the parameter estimates, which often include at least one parameter that is estimated to be approximately 0.
+The only model where neither of these seeming errors was OUMA for the simplest adaptive hypothesis (meta.other), which is perhaps unsurprising because that was one of the only models where OUwie did not warn about not having enough data to fit the model.
+Because almost all of the multiple-$\alpha$ models produced fitting errors, we have decided to discard all of them and focus only Brownian motion models (BM1 and BMS); single-$\alpha$, single-$\sigma$ models (OUM); and single-$\alpha$, multiple-$\sigma$ models (OUMV).
+
+```{r, echo=FALSE}
+data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names,
+           loglik = lapply(results, function(x) x$loglik) %>% unlist %>% signif(3),
+           npars = lapply(results, function(x) x$param.count) %>% unlist, 
+           AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
+           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           sigma = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% sqrt %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
+           ) %>% 
+    arrange(AICc) -> aics
+rownames(aics) <- as.character(1:nrow(aics))
+aics[sort(c(grep("OUMA",aics$Hypothesis), grep("OUMVA",aics$Hypothesis))),]
+                      
+```
+Of these, the best-fitting model is the OU model with 4 selective regimes, with separate drift parameters for each regime.
+Here are the negative log-likelihoods, number of parameters, AICc values, and parameter estimates for each of the models.
+```{r,echo=FALSE}
+aics2 <- aics[-sort(c(grep("OUMA",aics$Hypothesis), grep("OUMVA",aics$Hypothesis))),] 
+mutate(aics2, AICc=AICc-min(AICc))
+
+```
+
+One way to help visualize what this best-fitting model is telling us is by looking at the distribution of genome sizes for species in each selective regime, relative to the expected stationary distribution of genome sizes, given the model estimates for $\theta$, $\alpha$, and $\sigma$. 
+In particular, Ho and Ane (2013) showed that the stationary distribution of an OU process will be a normal distribution with mean $\theta$ and variance $\sigma^2/(2\alpha)$.
+From this figure, it is clear that genome size is under strong stabilizing selection in the direct development regime (which is by far the most common selective regime across the tree).
+This also appears to be true of genome size in salamander that undergo gradual metamorphosis (although since the peak of the genome size distribution is slightly smaller than the predicted mean, there are still some salamanders potentially experiencing some directional selection towards increasing genome sizes).
+Genome size in salamanders that undero abrupt metamorphosis, on the other hand, appears to be under directional selection towards smaller genome sizes, since almost all the salamanders in this regime have genome sizes that are larger than the expected mean.
+Conversely, genome size in the paedomorph regime appears to be under directional selection towards larger size (which we know is not actually directional selection so much as unconstrained TE accumulation).
+```{r genomeSizeHist, echo=FALSE, fig.height=4, fig.width=6.5, fig.cap="Observed distributions of genome size in each selective regime compared against the stationary distribution predicted by the OUMV model (dashed line)."}
+
+xrange <- vector(mode='list', length=4)
+yrange <- vector(mode='list',length=4)
+xbreaks <- seq(min(tipdata$genomesize), max(tipdata$genomesize), length=15)
+for (i in 1:4) {
+  hyp <- c("direct development", "meta-abrupt", "meta-gradual", "paedomorphosis")[i]
+  sigma <- sqrt(results[["abrupt.gradual.dd.paed.OUMV"]]$solution['sigma.sq',hyp]/(2*results[["abrupt.gradual.dd.paed.OUMV"]]$solution['alpha',hyp]))
+  mu <- results[["abrupt.gradual.dd.paed.OUMV"]]$theta[i,1]
+  y <- hist(tipdata$genomesize[tipdata$abrupt.gradual.dd.paed==hyp], breaks=xbreaks, plot=FALSE)
+  xhigh <- max(c(qnorm(0.995,mean=mu,sd=sigma), max(y$breaks)))
+  xlow <- min(c(qnorm(0.005,mean=mu,sd=sigma), min(y$breaks)))
+  xrange[[i]] <- c(xlow,xhigh)
+  yrange[[i]] <- c(0,max(max(y$density),dnorm(mu,mean=mu,sd=sigma)))
+}
+  
+par(mfrow=c(1,4), oma=c(2,4,0,0), mar=c(1.5,1.5,3,0.5))
+for (i in c(2,3,1,4)) {
+  hyp <- c("direct development", "meta-abrupt", "meta-gradual", "paedomorphosis")[i]
+  sigma <- sqrt(results[["abrupt.gradual.dd.paed.OUMV"]]$solution['sigma.sq',hyp]/(2*results[["abrupt.gradual.dd.paed.OUMV"]]$solution['alpha',hyp]))
+  mu <- results[["abrupt.gradual.dd.paed.OUMV"]]$theta[i,1]
+  y <- hist(tipdata$genomesize[tipdata$abrupt.gradual.dd.paed==hyp], plot=FALSE)
+  xseq <- seq(min(range(unlist(xrange))),max(range(unlist(xrange))),0.01)
+  title <- switch(hyp, "direct development"="Direct\nDevelopment", "meta-gradual"="Gradual\nMetamorphosis", "meta-abrupt"="Abrupt\nMetamorphosis", "paedomorphosis"="Paedo-\nmorphosis")
+  hist(tipdata$genomesize[tipdata$abrupt.gradual.dd.paed==hyp], breaks=xbreaks, freq=FALSE, main="", xlab="", ylab="", xlim=range(unlist(xrange)), ylim=range(unlist(yrange)), yaxt='n', xaxt='n'); axis(1,cex.axis=1.25); 
+  if (i==1) axis(2, labels=TRUE, tick=TRUE, cex.axis=1.25)
+  else axis(2, labels=FALSE, tick=TRUE, cex.axis=1.25)
+  lines(xseq, 1/(sigma*sqrt(2*pi))*exp(-(xseq-mu)^2/(2*sigma^2)), lwd=2, lty=2)
+  legend(x='topleft', c("c","a","b","d")[i], cex=1.5, bty='n',adj=c(3,0))
+  legend(x='topright', paste0("N=",sum(y$counts)), cex=1.5, bty='n')
+  box('plot')
+  mtext(title, side=3, line=0, cex=1)
+}
+mtext("Density", side=2, line=2, cex=1, outer=T)
+mtext("Genome size", side=1, line=1, cex=1, outer=T)
+
+
+```
+
+Another way to think about this is to compute the average deterministic pull $\left(\sum_i \alpha_{r}(\bar{\theta}_{r}-X_{i,r})\right)/N_{i,r}$, where $X_{i,r}$ is the genome size of species $i$ in regime $r$, $N_{i,r}$ is the total number of species in regime $r$ and $\alpha_r$ is the magnitude of the deterministic pull towards the expected genome size $\theta_r$, and to compare that to the magnitude of the stochastic drift in genome size for species in that regime, $\sigma_r$.
+From this, we see that there is no tendency for genome size evolution in direct developers; salamanders who undergo abrupt metamorphosis appear to be experiencing a strong deterministic trend towards smaller genome sizes; interestingly, paedomorphic salamanders and salamanders who under gradual metamorphosis are both experiencing a determinstic trend towards larger genome sizes that is stronger than any stochastic tendency towards drift.
+(**Note**: I do worry that this is overinterpreting the parameter estimates.)
+
+```{r, echo=FALSE}
+table <- array(NA, dim=c(4,2))
+colnames(table) <- c("Deterministic pull","Stochastic drift")
+rownames(table) <- c("direct development", "meta-abrupt", "meta-gradual", "paedomorphosis")
+for (i in 1:4) {
+  hyp <- c("direct development", "meta-abrupt", "meta-gradual", "paedomorphosis")[i]
+  ## Drift intensity
+  stochastic.drift <- sqrt(results[["abrupt.gradual.dd.paed.OUMV"]]$solution['sigma.sq',hyp])
+  deterministic.pull <- results[["abrupt.gradual.dd.paed.OUMV"]]$solution['alpha',hyp]*(results[["abrupt.gradual.dd.paed.OUMV"]]$theta[i,1]-tipdata$genomesize[tipdata$abrupt.gradual.dd.paed==hyp]) %>% mean
+  table[i,] <- c(deterministic.pull, stochastic.drift)
+}
+table
+```
+
+
+However, it is important to assess how strong the support for this hypothesis truly is. 
+Following the protocol of Boettiger et al. (2012) for phylogenetic Monte Carlo, I need to simulate datasets under different models and ask how often the true (data-generating) model is rejected in favor of an alternative model.
+
+We will do the following pairwise comparisons of models: 
+
+1. $metamorphosis-other$ (OUMV) versus $BM$. 
+
+2. $meta-paed-dd$ (OUMV) versus $metamorphosis-other$ (OUMV). 
+
+3. $meta_{abrupt}-meta_{gradual}-other$ (OUMV) versus $metamorphosis-other$ (OUMV).
+
+4. $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta-paed-dd$ (OUMV). 
+
+5. $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta_{abrupt}-meta_{gradual}-other$ (OUMV). 
+
+6. $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUM)
+
+Comparison (1) tests whether we can confidently reject a non-adaptive hypothesis for genome size evolution.
+Comparisons (2) and (5) test whether distinguishing direct development and paedomorphosis is supported.
+Comparisons (3) and (4) test whether distinguishing gradual and abrupt metamorphosis is supported.
+Comparison (6) tests whether allowing separate drift parameters for each regime is supported.
+We will simulate datasets under all of the models above, and then fit data generated by each of the two models under comparison to each of those models.
+
+
+```{r, eval=FALSE, echo=FALSE}
+
+## Generate 500 simulated datasets under each of the 5 models of interest
+PMCdata <- list(length=500)
+set.seed(1098743)
+for (i in 1:500) {
+  print(i)
+  ## simulate a dataset with each of the 5 models under consideration
+  ## Brownian motion
+  OUwie.sim(tree_meta.other, 
+            tipdata[,c("labels","meta.other","genomesize")], 
+            shift.point=1, 
+            scaleHeight = TRUE,
+            alpha = c(1e-10,1e-10),
+            sigma.sq = rep(results[["BM1"]]$solution["sigma.sq",],2),
+            theta0 = results[["BM1"]]$theta[1,1],
+            theta = c(0,0)
+            ) -> bm1.data
+  bm1.data[,2] <- tipdata[,"meta.other"]
+  for (hyp in c("meta.other","meta.dd.paed","abrupt.gradual.other","abrupt.gradual.dd.paed")) {
+    tree <- get(paste("tree",hyp,sep="_"))
+    data <- tipdata[,c("labels",hyp,"genomesize")]
+    OUwie.sim(tree, 
+              data, 
+              shift.point=1, 
+              scaleHeight=TRUE,
+              fitted.object=results[[paste(hyp,"OUMV",sep=".")]]) -> sim
+    sim[,2] <- data[,2] ## OUwie.sim rewrites the names of the regimes, so fix that now
+    assign(paste("oumv",hyp,"data",sep='.'),sim)
+    
+    if (hyp=="abrupt.gradual.dd.paed") {## also fit the OUM version of the model
+      OUwie.sim(tree, 
+                data, 
+                shift.point=1, 
+                scaleHeight=TRUE,
+                fitted.object=results[[paste(hyp,"OUM",sep=".")]]) -> sim
+      sim[,2] <- data[,2]
+      assign(paste("oum",hyp,"data",sep='.'),sim)  
+    }
+  }
+  PMCdata[[i]] <- list(bm1.data=bm1.data,
+                       oumv.meta.other.data=oumv.meta.other.data,
+                       oumv.abrupt.gradual.other.data=oumv.abrupt.gradual.other.data,
+                       oumv.meta.dd.paed.data=oumv.meta.dd.paed.data,
+                       oum.abrupt.gradual.dd.paed.data=oum.abrupt.gradual.dd.paed.data,
+                       oumv.abrupt.gradual.dd.paed.data=oumv.abrupt.gradual.dd.paed.data
+                       )
+}
+saveRDS(PMCdata, file="PMCdata.RDS")
+
+fitComparison <- function(data) {
+  complexModel <- c("meta.other","meta.dd.paed","abrupt.gradual.other","abrupt.gradual.dd.paed","abrupt.gradual.dd.paed","abrupt.gradual.dd.paed")
+  simpleModel <- c("bm1","meta.other","meta.other","meta.dd.paed","abrupt.gradual.other","abrupt.gradual.dd.paed")
+
+  fits <- vector(mode='list', length=6)
+  for (i in 1:6) {
+    complexTree <- get(paste("tree",complexModel[i],sep="_"))
+    complexData <- data[[paste("oumv",complexModel[i],"data",sep='.')]]
+    if (simpleModel[i]=="bm1") {
+      simpleTree <- tree_meta.other
+      simpleData <- data[["bm1.data"]]
+    }
+    else {
+      simpleTree <- get(paste("tree",simpleModel[i],sep="_"))
+      if (simpleModel[i]=="abrupt.gradual.dd.paed")
+        simpleData <- data[[paste("oum",simpleModel[i],"data",sep='.')]]
+      else simpleData <- data[[paste("oumv",simpleModel[i],"data",sep='.')]]
+    }
+    
+    if (simpleModel[i]=="bm1") {
+      OUwie(complexTree,
+          complexData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.complex
+      OUwie(simpleTree,
+          simpleData,
+          model="BM1",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.simple
+      OUwie(simpleTree,
+          complexData,
+          model="BM1",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.complex
+      OUwie(complexTree,
+          simpleData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.simple
+    } else if (simpleModel[i]=="abrupt.gradual.dd.paed") {
+      OUwie(complexTree,
+          complexData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.complex
+      OUwie(simpleTree,
+          simpleData,
+          model="OUM",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.simple
+      OUwie(simpleTree,
+          complexData,
+          model="OUM",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.complex
+      OUwie(complexTree,
+          simpleData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.simple
+    } else {
+      OUwie(complexTree,
+          complexData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.complex
+      OUwie(simpleTree,
+          simpleData,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.simple
+      ## Set regimes of complex data equal to the simpler model
+      complexData2 <- complexData
+      complexData2[,2] <- simpleData[,2]
+      OUwie(simpleTree,
+          complexData2,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.simple.to.complex
+      ## Set regimes of simple data equal to the complex model
+      simpleData2 <- simpleData
+      simpleData2[,2] <- complexData[,2]
+      OUwie(complexTree,
+          simpleData2,
+          model="OUMV",
+          scaleHeight=TRUE,
+          shift.point=1,
+          quiet=TRUE,
+          algorithm="invert") -> fit.complex.to.simple
+    }
+    fits[[i]] <- list(fit.complex.to.complex,
+                      fit.simple.to.simple,
+                      fit.simple.to.complex,
+                      fit.complex.to.simple)
+  }
+  return(fits)
+}
+
+numCores <- detectCores()
+mclapply(PMCdata,
+         fitComparison,
+         mc.cores=numCores) -> PMCfits
+saveRDS(PMCfits, file="PMCfits.RDS")
+
+
+```
+
+We can also use these fits to look at the confidence intervals for each of the parameters of the best-fitting model using a parametric bootstrap.
+
+```{r, echo=FALSE}
+PMCfits <- readRDS("PMCfits.RDS")
+  
+## Bootstrap parameter estimates from the best-fitting model
+data.frame(parameter=c('alpha','sigma.sq (dd)', 'sigma.sq (meta-abrupt)', 'sigma.sq (meta-gradual)', 'sigma.sq (paed)', 'theta (dd)', 'theta (meta-abrupt)', 'theta (meta-gradual)', 'theta (paed)'),
+           Estimate=as.numeric(c(aics[aics$Hypothesis=="abrupt.gradual.dd.paed.OUMV","alpha"],
+                                 strsplit(aics[aics$Hypothesis=="abrupt.gradual.dd.paed.OUMV","sigma"],", ")[[1]], 
+                                 strsplit(aics[aics$Hypothesis=="abrupt.gradual.dd.paed.OUMV","theta"],", ")[[1]])),
+           ## abrupt.gradual.dd.paed is the complex model for the 4th complex-simple comparison in the PMC code above, and the first model fit is the complex model fit to data simulated from the complex model
+           CI=c((lapply(PMCfits, function(f) f[[4]][[1]]$solution['alpha',] %>% unique) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$solution['sigma.sq',1]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$solution['sigma.sq',2]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$solution['sigma.sq',3]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$solution['sigma.sq',4]) %>% unlist %>% sort)[c(12,488)] %>% sqrt %>% signif(3) %>% paste(., collapse=", "),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$theta[1,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$theta[2,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$theta[3,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","),
+                (lapply(PMCfits, function(f) f[[4]][[1]]$theta[4,1]) %>% unlist %>% sort)[c(12,488)] %>% signif(3) %>% paste(., collapse=","))
+)
+```
+
+
+To determine whether the data really supports the conclusions we want to draw from the AICc table, we use the phylogenetic Monte Carlo approach of Boettiger et al. 2012. 
+We define the difference in the log-likelihoods between the two models as our test statistic: $\delta  = -2 (\log L_0 - \log L_1)$, where we assume that the $L_1$ is the likelihood of the more complex model.
+Higher values of this likelihood ratio indicate more support for the complex model.
+We will use the simulated datasets to estimate the distribution of $\delta$ when the data is generated by either of the two models under comparison.
+Our first comparison is between the $meta-other$ hypothesis, fitted with the OUMV model (the simplest adaptive hypothesis, but with separate $\sigma$ parameters for each regime), and the non-adaptive Brownian motion hypothesis.
+The p-value for this comparison is 0.004: when the data is generated by a non-adaptive model, the value of the test statistic is almost never as large as the value that we observed with the true dataset.
+
+```{r, echo=FALSE}
+## The true value of the test statistic
+delta <- -2*(results[["BM1"]]$loglik - results[["meta.other.OUMV"]]$loglik)
+
+## The distribution of the test statistic when the data is generated by the BM1 model
+## Note that the order of model fits is 
+## (1) complex model to data generated by the complex model
+## (2) simple model to data generated by the simple model
+## (3) simple model to data generated by the complex model
+## (4) complex model to data generated by the simple model
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[1]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[1]][[4]]$loglik) %>% unlist))
+
+## the proportion of the simulated values larger than the test statistic provides an approximation to the p-value for the test, the probability that a difference at least as large would be seen under model 0 (BM)
+
+meta.other.v.bm.p <- sum(delta < delta.dist)/length(delta.dist)
+meta.other.v.bm.p
+
+```
+We can also look at the overlap between the distributions of the test statistic when the data is generated by the non-adaptive model versus the adaptive model to get a sense of power. You can see that the power is very high (0.94), meaning that 94\% of the test statistic values when the data is generated by the adaptive model are larger than the 95th percentile of the distribution when the data is generated by the non-adaptive model. Both the p-value and the power can be visualized by a plot of the two distributions (Fig. \@ref(fig:pmcResults)A).)
+
+```{r, echo=FALSE}
+## The distribution of the test statistic when the data is generated by the meta.other model
+## Note that the order of model fits is 
+## (1) complex model to data generated by the complex model
+## (2) simple model to data generated by the simple model
+## (3) simple model to data generated by the complex model
+## (4) complex model to data generated by the simple model
+
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[1]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[1]][[1]]$loglik) %>% unlist))
+## The degree of overlap between this distribution and the one above gives a sense of the power.
+## The amount of this distribution to the right of the test statistic value that would reject the non-adaptive model with a false positive rate of 5% above gives the probability of rejecting model 0 when the data are produced by model 1 (e.g., the power)
+meta.other.v.bm.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+meta.other.v.bm.power 
+```
+
+Using the same methodology, we can calculate the approximate p-value and power for the second test, between $meta-paed-dd$ (OUMV) and $metamorphosis-other$ (OUMV). This tests whether more finely subdividing non-metamorphosing strategies into direct development and paedomorphosis provides a better fit to the data than simply between distinguishing between metamorphosing and non-metamorphosing strategies. Here the p-value is 0.088 and the power is 0.57, suggesting that the addition of direct development and paedomorphosis as separate constraint regimes does not really improve the explanatory power of the model. See Fig. \@ref(fig:pmcResults)B for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.other.OUMV"]]$loglik - results[["meta.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[2]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[2]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[2]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[2]][[1]]$loglik) %>% unlist))
+## p-value
+meta.dd.paed.v.meta.other.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+meta.dd.paed.v.meta.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+meta.dd.paed.v.meta.other.p
+meta.dd.paed.v.meta.other.power
+```
+
+Using the same methodology, we can calculate the approximate p-value and power for the third test, $meta_{abrupt}-meta_{gradual}-other$ (OUMV) and $metamorphosis-other$ (OUM). This tests whether distinguishing between different metamorphosis strategies is supported. Here the p-value is 0.084 and the power is 0.522. See Fig. \@ref(fig:pmcResults)C for a visual depiction of these results.
+
+
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.other.OUMV"]]$loglik - results[["abrupt.gradual.other.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[3]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[3]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[3]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[3]][[1]]$loglik) %>% unlist))
+## p-value
+abrupt.gradual.other.v.meta.other.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+abrupt.gradual.other.v.meta.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+abrupt.gradual.other.v.meta.other.p
+abrupt.gradual.other.v.meta.other.power
+```
+
+
+We also calculate the p-value and power for the fourth test, $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta-paed-dd$ (OUMV). This tests whether separate regimes for abrupt and gradual metamorphosis are supported, after accounting for the two non-metamorphosing strategies (direct development and paedomorphosis). The more complicated model is strongly supported, with a p-value of 0.046 and power of 0.718. See Fig. \@ref(fig:pmcResults)D for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["meta.dd.paed.OUMV"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[4]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[4]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[4]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[4]][[1]]$loglik) %>% unlist))
+## p-value
+abrupt.gradual.dd.paed.v.meta.dd.paed.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+abrupt.gradual.dd.paed.v.meta.dd.paed.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+abrupt.gradual.dd.paed.v.meta.dd.paed.p
+abrupt.gradual.dd.paed.v.meta.dd.paed.power
+```
+
+We also calculate the p-value and power for the fifth test, $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta_{abrupt}-meta_{gradual}-other$ (OUMV). This tests whether allowing separate regimes for direct developers and paedomorphs is supported, once you have accounted for abrupt and gradual metamorphosis. For this comparison, the p-value is 0.054 and the power is 0.728, indicating that there is fairly strong support for the more complex model. See Fig. \@ref(fig:pmcResults)E for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["abrupt.gradual.other.OUMV"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[5]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[5]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[5]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[5]][[1]]$loglik) %>% unlist))
+## p-value
+abrupt.gradual.dd.paed.v.abrupt.gradual.other.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+abrupt.gradual.dd.paed.v.abrupt.gradual.other.power <- sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+abrupt.gradual.dd.paed.v.abrupt.gradual.other.p
+abrupt.gradual.dd.paed.v.abrupt.gradual.other.power
+```
+
+
+Finally, just to cross all the t's and dot all the i's, we can calculate the p-value and power for the sixth test, $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUMV) versus $meta_{abrupt}-meta_{gradual}-paed-dd$ (OUM), which tests whether multiple $\sigma$ values is well-supported by the data. Here the p-value is 0.002 and the power is 0.96, suggesting very strong support for the more complex model. See Fig. \@ref(fig:pmcResults)F for a visual depiction of these results.
+
+```{r, echo=FALSE}
+delta <- -2*(results[["abrupt.gradual.dd.paed.OUM"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik)
+delta.dist <- -2*((lapply(PMCfits, function(f) f[[6]][[2]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[6]][[4]]$loglik) %>% unlist))
+delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[6]][[3]]$loglik) %>% unlist) - 
+                    (lapply(PMCfits, function(f) f[[6]][[1]]$loglik) %>% unlist))
+## p-value
+abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.p <- sum(delta < delta.dist)/length(delta.dist)
+## power
+abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.power  <-sum(delta.dist.2 > sort(delta.dist)[475])/length(delta.dist.2)
+abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.p
+abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.power
+```
+
+```{r pmcResults, echo=FALSE, fig.height=7.5, fig.width=10, fig.cap="Comparing the distributions of the test statistic when the data is generated by simpler (light gray) or more complex (dark gray) evolutionary models. The dashed line gives the actual value of the test statistic for the true data."}
+deltas <- c(-2*(results[["BM1"]]$loglik - results[["meta.other.OUMV"]]$loglik),
+           -2*(results[["meta.other.OUMV"]]$loglik - results[["meta.dd.paed.OUMV"]]$loglik),
+           -2*(results[["meta.other.OUMV"]]$loglik - results[["abrupt.gradual.other.OUMV"]]$loglik),
+           -2*(results[["meta.dd.paed.OUMV"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik),
+           -2*(results[["abrupt.gradual.other.OUMV"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik),
+           -2*(results[["abrupt.gradual.dd.paed.OUM"]]$loglik - results[["abrupt.gradual.dd.paed.OUMV"]]$loglik))
+pvalues <- c(meta.other.v.bm.p,
+             meta.dd.paed.v.meta.other.p,
+             abrupt.gradual.other.v.meta.other.p,
+             abrupt.gradual.dd.paed.v.meta.dd.paed.p,
+             abrupt.gradual.dd.paed.v.abrupt.gradual.other.p,
+             abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.p)
+powers <- c(meta.other.v.bm.power,
+            meta.dd.paed.v.meta.other.power,
+            abrupt.gradual.other.v.meta.other.power,
+            abrupt.gradual.dd.paed.v.meta.dd.paed.power,
+            abrupt.gradual.dd.paed.v.abrupt.gradual.other.power,
+            abrupt.gradual.dd.paed.oumv.v.abrupt.gradual.dd.paed.oum.power)
+
+complexModel <- c("meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed","abrupt-gradual-dd-paed","abrupt-gradual-dd-paed (OUMV)")
+simpleModel <- c("BM","meta-other","meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed (OUM)")
+  
+par(mar=c(2.5,2.5,1,1), oma=c(2,2,0,0), mfrow=c(2,3))
+for (i in 1:6) {
+  delta <- deltas[i]
+  delta.dist <- -2*((lapply(PMCfits, function(f) f[[i]][[2]]$loglik) %>% unlist) - 
+                      (lapply(PMCfits, function(f) f[[i]][[4]]$loglik) %>% unlist))
+  delta.dist.2 <- -2*((lapply(PMCfits, function(f) f[[i]][[3]]$loglik) %>% unlist) - 
+                        (lapply(PMCfits, function(f) f[[i]][[1]]$loglik) %>% unlist))
+  d1 <- density(delta.dist)
+  d2 <- density(delta.dist.2)
+  
+  plot.new()
+  plot.window(xlim=range(c(d1$x,d2$x)), ylim=range(c(d1$y,d2$y)))
+  
+  axis(1);axis(2);box('plot')
+  mtext(side=1, outer=T, expression(delta))
+  mtext(side=2, outer=T, 'Density')
+  lines(d1$x, d1$y, col=gray(0.7))
+  with(d1, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.7, alpha=0.5)))
+  lines(d2$x, d2$y, col=gray(0.2))
+  with(d2, polygon(x=c(min(x), x[x<max(x)], rev(x[x<max(x)]), min(x)), y=c(0, 0*x[x<max(x)], rev(y[x<max(x)]), 0), col=gray(0.2, alpha=0.5)))
+  abline(v=delta, lwd=2, lty=2)
+  legend(x='topright', c(simpleModel[i],complexModel[i],paste0('p=',pvalues[i]),paste0('power=',powers[i])), fill=c(gray(0.7),gray(0.2),gray(1),gray(1)),border=c(1,1,0,0), bty='n', cex=1.1)
+  legend(x=min(c(d1$x,d2$x)), y=max(c(d1$y,d2$y)), letters[i], bty='n', xjust=0.5, yjust=0.5)
+}
+
+```
+
+**Analyses with a different evolutionary history for plethodontids**
+
+In the above analyses, the ancestor of all plethodontids is assumed to be a metamorphosing amphibian. 
+However, there is some debate about this, and some researchers think that this ancestor was actually a direct developer. 
+As such, we want to make sure that the conlusions drawn above are unaffected by this assumption. 
+This requires modifying all of the adaptive hypotheses to "repaint" the ancestral nodes that are currently coded as metamorphosis.
+
+```{r, echo=FALSE}
+## To figure out which nodes to change, first change node names to numbers, plot, and then renname
+# tree_meta.other2 <- tree_meta.other
+# tree_meta.other2$node.label <- as.character(1:117)
+# plot(tree_meta.other2, show.node.label=TRUE, cex=0.5)
+
+tree_meta.other2 <- tree_meta.other
+tree_meta.other2$node.label[7:9] <- "other"
+# plot(tree_meta.other2, cex=0.5)
+# nodelabels(pch=21, bg=as.numeric(as.factor(tree_meta.other2$node.label)))
+
+tree_abrupt.gradual.other2 <- tree_abrupt.gradual.other
+tree_abrupt.gradual.other2$node.label[7:9] <- "other"
+# plot(tree_abrupt.gradual.other2, cex=0.5)
+# nodelabels(pch=21, bg=as.numeric(as.factor(tree_abrupt.gradual.other2$node.label)))
+
+tree_meta.dd.paed2 <- tree_meta.dd.paed
+tree_meta.dd.paed2$node.label[7:9] <- "direct development"
+# plot(tree_meta.dd.paed2, cex=0.5)
+# nodelabels(pch=21, bg=as.numeric(as.factor(tree_meta.dd.paed2$node.label)))
+
+tree_abrupt.gradual.dd.paed2 <- tree_abrupt.gradual.dd.paed
+tree_abrupt.gradual.dd.paed2$node.label[7:9] <- "direct development"
+# plot(tree_abrupt.gradual.dd.paed2, cex=0.5)
+# nodelabels(pch=21, bg=as.numeric(as.factor(tree_abrupt.gradual.dd.paed2$node.label)))
+```
+
+```{r, eval=FALSE, echo=FALSE}
+set.seed(1234321)
+
+bm.ouwie <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BM1"),root.station=FALSE,scaleHeight=TRUE,quiet=TRUE)
+## Fit all of the model variants (BMS, OUMA, OUMV, OUMVA) to each hypothesis
+meta.other.OUM <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.BMS <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMA <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMV <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.other.OUMVA <- OUwie(tree_meta.other2,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+meta.dd.paed.OUM <- OUwie(tree_meta.dd.paed2,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.BMS <- OUwie(tree_meta.dd.paed2,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMA <- OUwie(tree_meta.dd.paed2,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMV <- OUwie(tree_meta.dd.paed2,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUMVA <- OUwie(tree_meta.dd.paed2,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+abrupt.gradual.other.OUM <- OUwie(tree_abrupt.gradual.other2,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.BMS <- OUwie(tree_abrupt.gradual.other2,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMA <- OUwie(tree_abrupt.gradual.other2,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMV <- OUwie(tree_abrupt.gradual.other2,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUMVA <- OUwie(tree_abrupt.gradual.other2,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+abrupt.gradual.dd.paed.OUM <- OUwie(tree_abrupt.gradual.dd.paed2,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUM"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.BMS <- OUwie(tree_abrupt.gradual.dd.paed2,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("BMS"),root.station=FALSE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMA <- OUwie(tree_abrupt.gradual.dd.paed2,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMV <- OUwie(tree_abrupt.gradual.dd.paed2,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMV"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUMVA <- OUwie(tree_abrupt.gradual.dd.paed2,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUMVA"), scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+## save these results
+results <- list(BM1=bm.ouwie,
+                meta.other.OUM=meta.other.OUM,
+                meta.other.BMS=meta.other.BMS,
+                meta.other.OUMA=meta.other.OUMA,
+                meta.other.OUMV=meta.other.OUMV,
+                meta.other.OUMVA=meta.other.OUMVA,
+                abrupt.gradual.other.OUM=abrupt.gradual.other.OUM,
+                abrupt.gradual.other.BMS=abrupt.gradual.other.BMS,
+                abrupt.gradual.other.OUMA=abrupt.gradual.other.OUMA,
+                abrupt.gradual.other.OUMV=abrupt.gradual.other.OUMV,
+                abrupt.gradual.other.OUMVA=abrupt.gradual.other.OUMVA,
+                meta.dd.paed.OUM=meta.dd.paed.OUM,
+                meta.dd.paed.BMS=meta.dd.paed.BMS,
+                meta.dd.paed.OUMA=meta.dd.paed.OUMA,
+                meta.dd.paed.OUMV=meta.dd.paed.OUMV,
+                meta.dd.paed.OUMVA=meta.dd.paed.OUMVA,
+                abrupt.gradual.dd.paed.OUM=abrupt.gradual.dd.paed.OUM,
+                abrupt.gradual.dd.paed.BMS=abrupt.gradual.dd.paed.BMS,
+                abrupt.gradual.dd.paed.OUMA=abrupt.gradual.dd.paed.OUMA,
+                abrupt.gradual.dd.paed.OUMV=abrupt.gradual.dd.paed.OUMV,
+                abrupt.gradual.dd.paed.OUMVA=abrupt.gradual.dd.paed.OUMVA
+                )
+saveRDS(results, "all_model_fits_alt_history.RDS")
+
+```
+
+As with the original evolutionary history, the OU models with variable $\alpha$ produced nonsensical fitting results.
+
+```{r, echo=FALSE}
+results <- readRDS("all_model_fits_alt_history.RDS")
+data.frame(Hypothesis = lapply(results, function(x) x$AICc) %>% unlist %>% names,
+           loglik = lapply(results, function(x) x$loglik) %>% unlist %>% signif(3),
+           AICc = lapply(results, function(x) x$AICc) %>% unlist %>% signif(3),
+           alpha = lapply(results, function(x) unique(x$solution['alpha',]) %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           sigma = lapply(results, function(x) unique(x$solution['sigma.sq',]) %>% sqrt %>% signif(3) %>% paste(., collapse=", ")) %>% unlist,
+           theta = lapply(results, function(x) x$theta[,1] %>% signif(3) %>% paste(., collapse=", ")) %>% unlist
+           ) %>% 
+    arrange(AICc) -> aics
+rownames(aics) <- as.character(1:nrow(aics))
+aics[sort(c(grep("OUMA",aics$Hypothesis), grep("OUMVA",aics$Hypothesis))),]
+```
+Excluding these poor-fitting models, the top model remains unchanged from the previous analysis: $meta_{abrupt}-meta_{gradual}-dd-paed$ is still the best-fitting hypothesis.
+There is some reordering of the other models, however, in that the multiple-$\sigma$ stochastic models (BMS) outperform some of the multiple-$\sigma$ adaptive models.
+However, none of these stochastic, Brownian motion models outperform their adaptive, OU models (e.g., every OUMV model outperforms the corresponding BMS model).
+Thus, our overall evolutionary conclusions remain unchanged by modifying the selective regime history of plethodontid salamanders.
+
+```{r, echo=FALSE}
+aics[-sort(c(grep("OUMA",aics$Hypothesis), grep("OUMVA",aics$Hypothesis))),]
+```
+
+**Analyses with a different handling of the root state**
+
+OUwie has different options for dealing with the root state, $X(0)$. 
+Absent any information about the phenotype deep in the tree, this parameter is often very difficult to estimate in OU models (Cressler, et al. 2015). 
+One alternative is to assume that the value of $X(0)$ is distributed according to the stationary distribution of an OU process, which eliminates this parameter by absorbing the variance into the covariance matrix implied by the phylogeny itself (Ho and Ané 2013).
+However, OUwie does not currently support this approach for OU models with multiple $\alpha$ or $\sigma$ parameters, and as far as we know, the mathematical modifications for these models have not been worked out. 
+Because the option to estimate the value of the root node as in the earlier implementations (Hansen 1997; Butler and King 2004; and specified in OUwie by setting root.station=FALSE) is available for all of the models of interest, we used it for all of the model fitting above. 
+Here we explore the implications of that decision for the parameter estimates and model fits.
+We can only do this, of course, for the single-$\alpha$, single-$\sigma$ models.
+```{r, echo=FALSE, eval=FALSE}
+meta.other.OUM2 <- OUwie(tree_meta.other,data=tipdata[,c("labels","meta.other","genomesize")],model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+meta.dd.paed.OUM2 <- OUwie(tree_meta.dd.paed,data=tipdata[,c("labels","meta.dd.paed","genomesize")],model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.other.OUM2 <- OUwie(tree_abrupt.gradual.other,data=tipdata[,c("labels","abrupt.gradual.other","genomesize")],model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+abrupt.gradual.dd.paed.OUM2 <- OUwie(tree_abrupt.gradual.dd.paed,data=tipdata[,c("labels","abrupt.gradual.dd.paed","genomesize")],model=c("OUM"),root.station=TRUE, scaleHeight=TRUE, shift.point=1, quiet=TRUE)
+
+results <- list(meta.other.OUM2=meta.other.OUM2,
+                meta.dd.paed.OUM2=meta.dd.paed.OUM2,
+                abrupt.gradual.other.OUM2=abrupt.gradual.other.OUM2,
+                abrupt.gradual.dd.paed.OUM2=abrupt.gradual.dd.paed.OUM2)
+saveRDS(results, file="oum_model_fits_alt_root_handling.RDS")
+
+```
+The AICc estimates are not dramatically affected by handling of the root state: the order of the best-fitting models is the same in either case.
+(Note, however, that the best model in the single-$\alpha$, single-$\sigma$ case is not the same as the best model when $\sigma$ is allowed to vary amongst the regimes, and that the AICc differences in model fits are smaller, suggesting that the support for the hypotheses is weaker.)
+```{r, echo=FALSE}
+results1 <- readRDS("all_model_fits.RDS")
+results2 <- readRDS("oum_model_fits_alt_root_handling.RDS")
+
+aicc.results <- data.frame("Estimating root"=c(results1[["meta.other.OUM"]]$AICc,
+                                               results1[["meta.dd.paed.OUM"]]$AICc,
+                                               results1[["abrupt.gradual.other.OUM"]]$AICc,
+                                               results1[["abrupt.gradual.dd.paed.OUM"]]$AICc) %>% round(.,2),
+                           "Stationary root"=c(results2[["meta.other.OUM2"]]$AICc,
+                                               results2[["meta.dd.paed.OUM2"]]$AICc,
+                                               results2[["abrupt.gradual.other.OUM2"]]$AICc,
+                                               results2[["abrupt.gradual.dd.paed.OUM2"]]$AICc) %>% round(.,2)
+                           )
+rownames(aicc.results) <- c("meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed")
+aicc.results[order(aicc.results$Estimating.root),]
+
+```
+We also see almost no difference in the estimates of the $\theta$ values for each selective regime.
+```{r, echo=FALSE}
+theta.results <- data.frame("Estimating root"=c(results1[["abrupt.gradual.other.OUM"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results1[["abrupt.gradual.dd.paed.OUM"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results1[["meta.other.OUM"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results1[["meta.dd.paed.OUM"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", ")),
+                           "Stationary root"=c(results2[["abrupt.gradual.other.OUM2"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results2[["abrupt.gradual.dd.paed.OUM2"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results2[["meta.other.OUM2"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "),
+                                               results2[["meta.dd.paed.OUM2"]]$theta[,1] %>% round(.,2) %>% paste(., collapse=", "))
+                           )
+rownames(theta.results) <- c("meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed")
+theta.results
+```
+
+We see similar estimates of the strength of the deterministic pull, $\alpha$, although the differences are somewhat larger.
+
+```{r, echo=FALSE}
+alpha.results <- data.frame("Estimating root"=c(results1[["abrupt.gradual.other.OUM"]]$solution[1,1] %>% round(.,2),
+                                               results1[["abrupt.gradual.dd.paed.OUM"]]$solution[1,1] %>% round(.,2),
+                                               results1[["meta.other.OUM"]]$solution[1,1] %>% round(.,2),
+                                               results1[["meta.dd.paed.OUM"]]$solution[1,1] %>% round(.,2)),
+                           "Stationary root"=c(results2[["abrupt.gradual.other.OUM2"]]$solution[1,1] %>% round(.,2),
+                                               results2[["abrupt.gradual.dd.paed.OUM2"]]$solution[1,1] %>% round(.,2),
+                                               results2[["meta.other.OUM2"]]$solution[1,1] %>% round(.,2),
+                                               results2[["meta.dd.paed.OUM2"]]$solution[1,1] %>% round(.,2))
+                           )
+rownames(alpha.results) <- c("meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed")
+alpha.results
+```
+
+Finally, the estimates of noise intensity $\sigma$ are almost identical.
+
+```{r, echo=FALSE}
+sigma.results <- data.frame("Estimating root"=c(results1[["abrupt.gradual.other.OUM"]]$solution[2,1] %>% round(.,2),
+                                               results1[["abrupt.gradual.dd.paed.OUM"]]$solution[2,1] %>% round(.,2),
+                                               results1[["meta.other.OUM"]]$solution[2,1] %>% round(.,2),
+                                               results1[["meta.dd.paed.OUM"]]$solution[2,1] %>% round(.,2)),
+                           "Stationary root"=c(results2[["abrupt.gradual.other.OUM2"]]$solution[2,1] %>% round(.,2),
+                                               results2[["abrupt.gradual.dd.paed.OUM2"]]$solution[2,1] %>% round(.,2),
+                                               results2[["meta.other.OUM2"]]$solution[2,1] %>% round(.,2),
+                                               results2[["meta.dd.paed.OUM2"]]$solution[2,1] %>% round(.,2))
+                           )
+rownames(sigma.results) <- c("meta-other","meta-dd-paed","abrupt-gradual-other","abrupt-gradual-dd-paed")
+sigma.results
+```
+
+This suggests that the handling of the root state does not have a large effect on the parameter estimates or model fits.
