@@ -188,7 +188,7 @@ for (i in c(2,3,1,4)) {
   xseq <- seq(min(range(unlist(xrange))),max(range(unlist(xrange))),0.01)
   title <- switch(hyp, "direct development"="Direct\nDevelopment", "meta-gradual"="Gradual\nMetamorphosis", "meta-abrupt"="Abrupt\nMetamorphosis", "paedomorphosis"="Paedo-\nmorphosis")
   hist(tipdata$genomesize[tipdata$abrupt.gradual.dd.paed==hyp], breaks=xbreaks, freq=FALSE, main="", xlab="", ylab="", xlim=range(unlist(xrange)), ylim=range(unlist(yrange)), yaxt='n', xaxt='n'); axis(1,cex.axis=1.25); 
-  if (i==1) axis(2, labels=TRUE, tick=TRUE, cex.axis=1.25)
+  if (i==2) axis(2, labels=TRUE, tick=TRUE, cex.axis=1.25)
   else axis(2, labels=FALSE, tick=TRUE, cex.axis=1.25)
   lines(xseq, 1/(sigma*sqrt(2*pi))*exp(-(xseq-mu)^2/(2*sigma^2)), lwd=2, lty=2)
   legend(x='topleft', c("c","a","b","d")[i], cex=1.5, bty='n',adj=c(3,0))
